@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - API Keys</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Pantalla de Login -->
+    <div id="login-screen" class="screen active">
+        <div class="login-container">
+            <div class="terminal-header">
+                <div class="terminal-buttons">
+                    <span class="btn-red"></span>
+                    <span class="btn-yellow"></span>
+                    <span class="btn-green"></span>
+                </div>
+                <div class="terminal-title">root@api-control:~$</div>
+            </div>
+            
+            <div class="login-content">
+                <div class="ascii-art">
+                    <pre>
+       ██████╗  ██╗    ██╗██████╗
+       ██╔════╝ ██║    ██║██╔═══╝
+    ██║  ███╗██║ █╗ ██║██║ 
+      ██║   ██║██║███╗██║██║   
+       ╚██████╔╝╚███╔███╔╝╚██████
+        ╚═════╝  ╚══╝╚══╝  ╚═════╝ 
+                    </pre>
+                    <p class="subtitle">Sistema de Control de API Keys v2.0</p>
+                </div>
+
+                <form id="login-form" class="login-form">
+                    <div class="form-group">
+                        <label for="role">
+                            <i class="fas fa-shield-alt"></i> Tipo de Acceso
+                        </label>
+                        <select id="role" name="role" required>
+                            <option value="">Seleccionar rol...</option>
+                            <option value="admin">🔑 Administrador</option>
+                            <option value="vendedor">💼 Vendedor</option>
+                            <option value="cliente">👤 Cliente</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username">
+                            <i class="fas fa-user"></i> Usuario
+                        </label>
+                        <input type="text" id="username" name="username" placeholder="Ingresa tu usuario" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">
+                            <i class="fas fa-lock"></i> Contraseña
+                        </label>
+                        <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                    </button>
+
+                    <div class="register-link">
+                        <a href="#" id="show-register">¿Eres cliente nuevo? Regístrate aquí</a>
+                    </div>
+                </form>
+
+                <div id="verification-form" class="verification-form hidden">
+                    <h3><i class="fas fa-shield-alt"></i> Verificación de IP Requerida</h3>
+                    <p class="warning-text">🔒 <strong>Nueva IP detectada.</strong> Se ha enviado un código de verificación a los administradores.</p>
+                    
+                    <div class="info-box" style="margin: 20px 0; background: rgba(255, 165, 0, 0.1); border: 1px solid #FFA500;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <p style="margin: 0;"><strong>Contacta a un administrador</strong></p>
+                            <p style="margin: 5px 0 0 0; font-size: 14px;">Solo ellos pueden darte el código de verificación.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-contacts" style="margin: 20px 0;">
+                        <p style="text-align: center; margin-bottom: 10px; color: var(--text-secondary);">📱 Contacta por Telegram:</p>
+                        <span class="admin-tag">@zGatoO</span>
+                        <span class="admin-tag">@choco_tete</span>
+                        <span class="admin-tag">@WinniePoohOFC</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="verification-code">
+                            <i class="fas fa-key"></i> Ingresa el código que te proporcionó el admin
+                        </label>
+                        <input type="text" id="verification-code" placeholder="Ej: ABC123" required>
+                    </div>
+                    <button id="verify-ip-btn" class="btn-primary">
+                        <i class="fas fa-check"></i> Verificar Código
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Registro de Cliente -->
+    <div id="register-screen" class="screen">
+        <div class="login-container">
+            <div class="terminal-header">
+                <div class="terminal-buttons">
+                    <span class="btn-red"></span>
+                    <span class="btn-yellow"></span>
+                    <span class="btn-green"></span>
+                </div>
+                <div class="terminal-title">root@api-control:~/register$</div>
+            </div>
+            
+            <div class="login-content">
+                <h2><i class="fas fa-user-plus"></i> Registro de Cliente</h2>
+                
+                <div class="warning-box">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p><strong>¡ATENCIÓN!</strong> Si solicitas acceso pero no compras, serás <strong>bloqueado y reportado</strong>.</p>
+                </div>
+
+                <form id="register-form" class="login-form">
+                    <div class="form-group">
+                        <label for="reg-fullname">
+                            <i class="fas fa-id-card"></i> Nombre Completo
+                        </label>
+                        <input type="text" id="reg-fullname" name="fullName" placeholder="Tu nombre completo" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-username">
+                            <i class="fas fa-user"></i> Usuario
+                        </label>
+                        <input type="text" id="reg-username" name="username" placeholder="Elige un usuario" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-password">
+                            <i class="fas fa-lock"></i> Contraseña
+                        </label>
+                        <input type="password" id="reg-password" name="password" placeholder="Elige una contraseña segura" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-telegram">
+                            <i class="fab fa-telegram"></i> Usuario de Telegram
+                        </label>
+                        <input type="text" id="reg-telegram" name="telegram" placeholder="@tuusuario" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-phone">
+                            <i class="fas fa-phone"></i> Teléfono
+                        </label>
+                        <input type="tel" id="reg-phone" name="phone" placeholder="+51 999 999 999" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-paper-plane"></i> Solicitar Acceso
+                    </button>
+
+                    <div class="register-link">
+                        <a href="#" id="back-to-login">Volver al login</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel Principal -->
+    <div id="dashboard-screen" class="screen">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-terminal"></i> API PANEL</h2>
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar">A</div>
+                    <div class="user-details">
+                        <span class="user-name" id="user-name">Usuario</span>
+                        <span class="user-role" id="user-role">admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="#" class="nav-item" data-section="keys">
+                    <i class="fas fa-key"></i> Mis Keys
+                </a>
+                <a href="#" class="nav-item" data-section="requests">
+                    <i class="fas fa-shopping-cart"></i> Solicitar Keys
+                    <span class="notification-badge" id="requests-count">0</span>
+                </a>
+                <a href="#" class="nav-item admin-vendor-only" data-section="pending-requests">
+                    <i class="fas fa-tasks"></i> Aprobar Solicitudes
+                    <span class="notification-badge" id="pending-count">0</span>
+                </a>
+                <a href="#" class="nav-item admin-only" data-section="users">
+                    <i class="fas fa-users"></i> Usuarios
+                </a>
+                <a href="#" class="nav-item admin-only" data-section="notifications">
+                    <i class="fas fa-bell"></i> Notificaciones
+                    <span class="notification-badge" id="notification-count">0</span>
+                </a>
+                <a href="#" class="nav-item" data-section="profile">
+                    <i class="fas fa-user-circle"></i> Mi Perfil
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="logout-btn" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="content-section active">
+                <div class="section-header">
+                    <h1><i class="fas fa-chart-line"></i> Dashboard</h1>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="total-keys">0</h3>
+                            <p>Keys Activas</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card admin-only">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="total-users">0</h3>
+                            <p>Usuarios Totales</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="active-endpoints">0</h3>
+                            <p>Endpoints Activos</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="expiring-keys">0</h3>
+                            <p>Keys por Vencer</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="api-endpoints-list">
+                    <h2><i class="fas fa-list"></i> Endpoints Disponibles</h2>
+                    <div class="endpoints-grid" id="endpoints-grid">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Keys Section -->
+            <section id="keys-section" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-key"></i> Gestión de API Keys</h1>
+                    <button class="btn-primary" id="create-key-btn">
+                        <i class="fas fa-plus"></i> Crear Nueva Key
+                    </button>
+                </div>
+
+                <div class="keys-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Key</th>
+                                <th>Endpoint</th>
+                                <th>Duración</th>
+                                <th>Expira</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="keys-table-body">
+                            <!-- Se llenará dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Users Section (Solo Admin) -->
+            <section id="users-section" class="content-section admin-only">
+                <div class="section-header">
+                    <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
+                    <button class="btn-primary" id="create-user-btn">
+                        <i class="fas fa-user-plus"></i> Crear Usuario
+                    </button>
+                </div>
+
+                <div class="users-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Rol</th>
+                                <th>Telegram</th>
+                                <th>Estado</th>
+                                <th>Expira</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <!-- Se llenará dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Notifications Section (Solo Admin) -->
+            <section id="notifications-section" class="content-section admin-only">
+                <div class="section-header">
+                    <h1><i class="fas fa-bell"></i> Notificaciones y Códigos</h1>
+                    <button class="btn-danger" id="clear-all-notifications-btn">
+                        <i class="fas fa-trash-alt"></i> Limpiar Todas
+                    </button>
+                </div>
+
+                <div class="notifications-list" id="notifications-list">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </section>
+
+            <!-- Requests Section (Solicitar Keys) -->
+            <section id="requests-section" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-shopping-cart"></i> Solicitar API Keys</h1>
+                </div>
+
+                <div class="request-form-container">
+                    <div class="info-box">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Selecciona los endpoints que necesitas y la duración. Tu solicitud será enviada al administrador para aprobación.</p>
+                    </div>
+
+                    <form id="request-keys-form">
+                        <h3><i class="fas fa-list-check"></i> Selecciona Endpoints y Duración</h3>
+                        <div id="endpoints-request-container">
+                            <!-- Se llenará dinámicamente -->
+                        </div>
+
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-paper-plane"></i> Enviar Solicitud
+                        </button>
+                    </form>
+
+                    <div class="my-requests-container">
+                        <h2><i class="fas fa-history"></i> Mis Solicitudes</h2>
+                        <div id="my-requests-list">
+                            <!-- Se llenará dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pending Requests Section (Admin/Vendedor) -->
+            <section id="pending-requests-section" class="content-section admin-vendor-only">
+                <div class="section-header">
+                    <h1><i class="fas fa-tasks"></i> Aprobar Solicitudes de Keys</h1>
+                </div>
+
+                <div class="pending-requests-list" id="pending-requests-list">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </section>
+
+            <!-- Profile Section -->
+            <section id="profile-section" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-user-circle"></i> Mi Perfil</h1>
+                </div>
+
+                <div class="profile-container">
+                    <form id="profile-form" class="profile-form">
+                        <div class="form-group">
+                            <label><i class="fas fa-user"></i> Usuario</label>
+                            <input type="text" id="profile-username" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fas fa-shield-alt"></i> Rol</label>
+                            <input type="text" id="profile-role" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fab fa-telegram"></i> Telegram</label>
+                            <input type="text" id="profile-telegram">
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fas fa-lock"></i> Nueva Contraseña</label>
+                            <input type="password" id="profile-password" placeholder="Dejar vacío para no cambiar">
+                        </div>
+
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal para crear Key -->
+    <div id="create-key-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> Crear Nueva API Key</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="create-key-form">
+                <div class="form-group">
+                    <label for="key-endpoint">Endpoint</label>
+                    <select id="key-endpoint" name="endpoint" required>
+                        <option value="">Seleccionar endpoint...</option>
+                        <option value="dni">📋 DNI - Consulta de personas</option>
+                        <option value="telp">📱 TELP - Teléfonos</option>
+                        <option value="nom">👤 NOM - Búsqueda por nombres</option>
+                        <option value="arg">🌳 ARG - Árbol genealógico</option>
+                        <option value="corr">📧 CORR - Correos electrónicos</option>
+                        <option value="risk">⚠️ RISK - Datos de riesgo</option>
+                        <option value="foto">📷 FOTO - Fotografías</option>
+                        <option value="sunat">🏢 SUNAT - Datos laborales</option>
+                        <option value="meta">🔍 META - Todos los datos</option>
+                        <option value="all" class="admin-only">🔓 ALL - Acceso total</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="key-duration-amount">⏰ Duración Personalizada</label>
+                    <div class="duration-input-group">
+                        <input type="number" id="key-duration-amount" name="durationAmount" 
+                               placeholder="Ej: 30" min="1" max="1000" required>
+                        <select id="key-duration-unit" name="durationUnit" required>
+                            <option value="horas">Horas</option>
+                            <option value="dias">Días</option>
+                            <option value="meses" selected>Meses</option>
+                        </select>
+                    </div>
+                    <small style="color: var(--text-secondary); margin-top: 5px; display: block;">
+                        Ejemplo: 30 horas, 7 días, 2 meses
+                    </small>
+                </div>
+
+                <div class="form-group admin-vendor-only">
+                    <label for="key-user">Asignar a Usuario (Opcional)</label>
+                    <select id="key-user" name="userId">
+                        <option value="">Para mí mismo</option>
+                        <!-- Se llenará dinámicamente con clientes -->
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-plus"></i> Generar Key
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para crear Usuario -->
+    <div id="create-user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> Crear Usuario</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="create-user-form">
+                <div class="form-group">
+                    <label for="user-username">Usuario</label>
+                    <input type="text" id="user-username" name="username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="user-password">Contraseña</label>
+                    <input type="password" id="user-password" name="password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="user-role">Rol</label>
+                    <select id="user-role" name="role" required>
+                        <option value="">Seleccionar rol...</option>
+                        <option value="vendedor" class="admin-only">💼 Vendedor</option>
+                        <option value="cliente">👤 Cliente</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="user-telegram">Telegram</label>
+                    <input type="text" id="user-telegram" name="telegram" placeholder="@usuario" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="user-duration">Duración de Acceso</label>
+                    <select id="user-duration" name="duration" required>
+                        <option value="">Seleccionar duración...</option>
+                        <option value="1d">1 Día</option>
+                        <option value="7d">7 Días</option>
+                        <option value="1m">1 Mes</option>
+                        <option value="2m">2 Meses</option>
+                        <option value="6m">6 Meses</option>
+                        <option value="1y">1 Año</option>
+                        <option value="permanent" class="admin-only">Permanente</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Endpoints Permitidos</label>
+                    <div class="checkbox-group" id="endpoints-checkboxes">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-user-plus"></i> Crear Usuario
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Renovar Key -->
+    <div id="renew-key-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-redo"></i> Renovar API Key</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="renew-key-form">
+                <input type="hidden" id="renew-key-id" name="keyId">
+                
+                <div class="info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <p>La key se renovará desde AHORA, agregando el tiempo que especifiques</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="renew-duration-amount">⏰ Agregar Tiempo</label>
+                    <div class="duration-input-group">
+                        <input type="number" id="renew-duration-amount" name="durationAmount" 
+                               placeholder="Ej: 30" min="1" max="1000" required>
+                        <select id="renew-duration-unit" name="durationUnit" required>
+                            <option value="horas">Horas</option>
+                            <option value="dias">Días</option>
+                            <option value="meses" selected>Meses</option>
+                        </select>
+                    </div>
+                    <small style="color: var(--text-secondary); margin-top: 5px; display: block;">
+                        La key expirará en el tiempo que especifiques desde ahora
+                    </small>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-redo"></i> Renovar Key
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="/js/app.js"></script>
+</body>
+</html>
+
