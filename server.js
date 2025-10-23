@@ -25,8 +25,8 @@ app.use(express.static('public'));
 const JWT_SECRET = process.env.JWT_SECRET || 'tu-secreto-super-seguro-cambialo';
 
 // Conexión a MongoDB (usaremos MongoDB en memoria por ahora)
-// En producción usa MongoDB Atlas
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/panel-admin';
+// En producción usa MongoDB Atlas o Railway MongoDB
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/panel-admin';
 
 // Modelos
 const User = require('./models/User');
