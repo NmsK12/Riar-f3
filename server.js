@@ -358,7 +358,6 @@ const profileRouter = require('./routes/profile');
 const keyRequestsRouter = require('./routes/keyRequests');
 
 // Ruta pública para validar keys (usado por la API principal)
-const ApiKey = require('./models/ApiKey');
 app.post('/api/keys/validate', async (req, res) => {
   try {
     const { key, endpoint } = req.body;
