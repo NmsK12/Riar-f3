@@ -357,6 +357,58 @@ const statsRouter = require('./routes/stats');
 const profileRouter = require('./routes/profile');
 const keyRequestsRouter = require('./routes/keyRequests');
 
+// Ruta pública para validar keys (usado por la API principal)
+const ApiKey = require('./models/ApiKey');
+app.post('/api/keys/validate', async (req, res) => {
+  try {
+    const { key, endpoint } = req.body;
+
+    if (!key) {
+      return res.status(400).json({ success: false, message: 'Key requerida', valid: false });
+    }
+
+    const apiKey = await ApiKey.findOne({ key, active: true });
+    
+    if (!apiKey) {
+      return res.status(401).json({ success: false, message: 'Key inválida', valid: false });
+    }
+
+    // Verificar expiración
+    if (new Date() > apiKey.expiresAt) {
+      apiKey.active = false;
+      await apiKey.save();
+      return res.status(401).json({ success: false, message: 'Key expirada', valid: false });
+    }
+
+    // Verificar endpoint
+    if (apiKey.endpoint !== 'all' && endpoint && apiKey.endpoint !== endpoint) {
+      return res.status(403).json({ 
+        success: false, 
+        message: `Esta key solo es válida para el endpoint: ${apiKey.endpoint}`, 
+        valid: false 
+      });
+    }
+
+    // Actualizar uso
+    apiKey.usageCount += 1;
+    apiKey.lastUsed = new Date();
+    await apiKey.save();
+
+    res.json({
+      success: true,
+      message: 'Key válida',
+      valid: true,
+      data: {
+        endpoint: apiKey.endpoint,
+        expiresAt: apiKey.expiresAt
+      }
+    });
+  } catch (error) {
+    console.error('Error validando key:', error);
+    res.status(500).json({ success: false, message: 'Error validando key', error: error.message, valid: false });
+  }
+});
+
 app.use('/api/keys', authenticate, keysRouter);
 app.use('/api/users', authenticate, authorize('admin', 'vendedor'), usersRouter);
 app.use('/api/notifications', authenticate, notificationsRouter);
