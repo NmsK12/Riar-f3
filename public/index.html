@@ -17,6 +17,7 @@
     <title>Panel de Administración - API Keys</title>
     <link rel="stylesheet" href="/css/style.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/css/ready-urls.css">
+    <link rel="stylesheet" href="/css/welcome-modal.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -204,7 +205,7 @@
                 <a href="#" class="nav-item" data-section="keys">
                     <i class="fas fa-key"></i> Mis Keys
                 </a>
-                <a href="#" class="nav-item" data-section="requests">
+                <a href="#" class="nav-item client-vendor-only" data-section="requests">
                     <i class="fas fa-shopping-cart"></i> Solicitar Keys
                     <span class="notification-badge" id="requests-count">0</span>
                 </a>
@@ -601,6 +602,63 @@
                     <i class="fas fa-redo"></i> Renovar Key
                 </button>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal de Bienvenida al crear Key -->
+    <div id="welcome-key-modal" class="modal">
+        <div class="modal-content modal-welcome">
+            <div class="modal-header modal-header-success">
+                <h2><i class="fas fa-check-circle"></i> ¡Key Creada Exitosamente!</h2>
+                <button class="modal-close" onclick="closeWelcomeModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Animación de éxito -->
+                <div class="success-animation">
+                    <div class="checkmark-circle">
+                        <div class="checkmark"></div>
+                    </div>
+                </div>
+
+                <!-- Información de la key -->
+                <div class="key-info-box">
+                    <h3><i class="fas fa-key"></i> Tu Nueva API Key</h3>
+                    <div class="key-display" id="welcome-key-value">
+                        <code>XXXXXXXXXXXXXXXXX</code>
+                        <button class="btn-copy-inline" onclick="copyWelcomeKey()">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <p class="key-details">
+                        <strong>Endpoint:</strong> <span id="welcome-endpoint">DNI</span><br>
+                        <strong>Duración:</strong> <span id="welcome-duration">30 días</span><br>
+                        <strong>Expira:</strong> <span id="welcome-expires">31/12/2024</span>
+                    </p>
+                </div>
+
+                <!-- URLs de ejemplo -->
+                <div class="url-example-box">
+                    <h3><i class="fas fa-link"></i> Links Listos para Usar</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 15px;">
+                        Copia el link que necesites y reemplaza el DNI/teléfono/nombre de ejemplo con datos reales:
+                    </p>
+                    <div id="welcome-url-display" class="url-examples-container">
+                        <!-- Se llenará dinámicamente con los ejemplos -->
+                    </div>
+                </div>
+
+                <!-- Términos y Condiciones según rol -->
+                <div class="terms-box" id="welcome-terms">
+                    <!-- Se llenará dinámicamente según el rol -->
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-primary btn-large" onclick="closeWelcomeModal()">
+                    <i class="fas fa-check"></i> Entendido, Comenzar a Usar
+                </button>
+            </div>
         </div>
     </div>
 

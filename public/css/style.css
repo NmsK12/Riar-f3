@@ -842,8 +842,16 @@ body {
     }
 }
 
-/* ===== ADMIN ONLY ===== */
+/* ===== ROLES VISIBILITY ===== */
 .admin-only {
+    /* Se mostrará/ocultará dinámicamente con JS */
+}
+
+.admin-vendor-only {
+    /* Se mostrará/ocultará dinámicamente con JS */
+}
+
+.client-vendor-only {
     /* Se mostrará/ocultará dinámicamente con JS */
 }
 

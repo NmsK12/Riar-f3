@@ -1,5 +1,5 @@
 // ===== ESTADO GLOBAL =====
-// Version: 2.0.1 - Fix event listener duplicado
+// Version: 3.2 - Modal de bienvenida + Links completos
 const state = {
     user: null,
     token: null,
@@ -7,6 +7,9 @@ const state = {
     users: [],
     notifications: []
 };
+
+// URL de la API principal
+const API_URL = 'https://web-production-da283.up.railway.app';
 
 // ===== API CLIENT =====
 const API = {
@@ -900,7 +903,7 @@ async function loadKeys() {
 // Renderizar URLs listas para copiar
 function renderReadyUrls(keys) {
     const container = document.getElementById('ready-urls-list');
-    const API_BASE_URL = process.env.API_URL || 'https://sisfoh-api.up.railway.app';
+    const API_BASE_URL = API_URL;
     
     const activeKeys = keys.filter(k => {
         const timeInfo = calculateTimeRemaining(k.expiresAt);
@@ -1149,10 +1152,11 @@ document.getElementById('create-key-form')?.addEventListener('submit', async (e)
             UI.toast(`Key creada exitosamente para ${durationAmount} ${durationUnit}`, 'success');
             UI.hideModal('create-key-modal');
             e.target.reset();
-            await loadKeys();
             
-            // Mostrar key generada
-            alert(`✅ Key creada exitosamente!\n\n🔑 Key: ${response.data.key}\n📍 Endpoint: ${response.data.endpoint.toUpperCase()}\n⏰ Expira: ${new Date(response.data.expiresAt).toLocaleString()}`);
+            // Mostrar modal de bienvenida con la key
+            showWelcomeModal(response.data);
+            
+            await loadKeys();
         }
     } catch (error) {
         UI.toast(error.message, 'error');
@@ -1399,6 +1403,267 @@ document.querySelectorAll('.nav-item').forEach(item => {
     });
 });
 
+// ===== MODAL DE BIENVENIDA =====
+function showWelcomeModal(keyData) {
+    const modal = document.getElementById('welcome-key-modal');
+    const role = state.user.role;
+    
+    // Llenar información de la key
+    document.getElementById('welcome-key-value').querySelector('code').textContent = keyData.key;
+    document.getElementById('welcome-endpoint').textContent = keyData.endpoint.toUpperCase();
+    document.getElementById('welcome-duration').textContent = keyData.duration;
+    document.getElementById('welcome-expires').textContent = new Date(keyData.expiresAt).toLocaleString();
+    
+    // Generar ejemplos de URLs según el endpoint
+    const key = keyData.key;
+    let examplesHTML = '';
+    
+    // Función para generar un ejemplo de URL
+    const generateExample = (emoji, label, url, description) => `
+        <div class="url-example-item">
+            <div class="url-example-header">
+                <span class="url-label">${emoji} ${label}</span>
+                <small>${description}</small>
+            </div>
+            <div class="url-input-group">
+                <input type="text" class="url-input" readonly value="${url}" onclick="this.select()">
+                <button class="btn-copy-inline" onclick="copyExampleUrl('${url}')">
+                    <i class="fas fa-copy"></i> Copiar
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Generar ejemplos según el endpoint
+    if (keyData.endpoint === 'dni' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '🔍', 'DNI',
+            `${API_URL}/dni?dni=80660244&key=${key}`,
+            'Consulta datos personales completos'
+        );
+    }
+    
+    if (keyData.endpoint === 'telp' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '📱', 'TELÉFONO',
+            `${API_URL}/telp?tel=904684131&key=${key}`,
+            'Buscar por número de teléfono'
+        );
+    }
+    
+    if (keyData.endpoint === 'nom' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '👤', 'NOMBRES',
+            `${API_URL}/nom?nom=MARIA%20ELENA&key=${key}`,
+            'Buscar personas por nombre'
+        );
+    }
+    
+    if (keyData.endpoint === 'arg' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '🌳', 'ÁRBOL GENEALÓGICO',
+            `${API_URL}/arg?dni=80660244&key=${key}`,
+            'Familiares directos'
+        );
+    }
+    
+    if (keyData.endpoint === 'corr' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '📧', 'CORREOS',
+            `${API_URL}/corr?dni=80660244&key=${key}`,
+            'Emails asociados al DNI'
+        );
+    }
+    
+    if (keyData.endpoint === 'risk' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '⚠️', 'RIESGO',
+            `${API_URL}/risk?dni=80660244&key=${key}`,
+            'Datos de riesgo crediticio'
+        );
+    }
+    
+    if (keyData.endpoint === 'foto' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '📷', 'FOTO',
+            `${API_URL}/foto?dni=80660244&key=${key}`,
+            'Solo fotografía en base64'
+        );
+    }
+    
+    if (keyData.endpoint === 'sunat' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '💼', 'SUNAT',
+            `${API_URL}/sunat?dni=80660244&key=${key}`,
+            'Historial laboral'
+        );
+    }
+    
+    if (keyData.endpoint === 'meta' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '🔥', 'META (TODO)',
+            `${API_URL}/meta?dni=80660244&key=${key}`,
+            'Todos los datos disponibles'
+        );
+    }
+    
+    document.getElementById('welcome-url-display').innerHTML = examplesHTML;
+    window.currentWelcomeKey = key;
+    
+    // Términos y condiciones según rol
+    const termsContainer = document.getElementById('welcome-terms');
+    let termsHTML = '';
+    
+    if (role === 'admin') {
+        termsHTML = `
+            <h3><i class="fas fa-shield-alt"></i> Términos de Uso - Administrador</h3>
+            <ul>
+                <li>✓ Tienes acceso completo a todos los endpoints</li>
+                <li>✓ Puedes crear keys ilimitadas para ti y otros usuarios</li>
+                <li>✓ No compartas tus keys con personas no autorizadas</li>
+                <li>✓ Monitore el uso para detectar abusos</li>
+                <li>✓ Esta key es personal e intransferible</li>
+            </ul>
+        `;
+        termsContainer.className = 'terms-box admin-terms';
+    } else if (role === 'vendedor') {
+        termsHTML = `
+            <h3><i class="fas fa-briefcase"></i> Términos de Uso - Vendedor</h3>
+            <ul>
+                <li>✓ Puedes crear hasta 5 usuarios tipo cliente</li>
+                <li>✓ Las keys generadas son para uso comercial autorizado</li>
+                <li>✓ No compartas tus keys con terceros no autorizados</li>
+                <li>✓ Eres responsable del uso que hagan tus clientes</li>
+                <li>✓ Reporta cualquier abuso a los administradores</li>
+                <li>✓ El mal uso puede resultar en suspensión de tu cuenta</li>
+            </ul>
+        `;
+        termsContainer.className = 'terms-box vendor-terms';
+    } else {
+        termsHTML = `
+            <h3><i class="fas fa-exclamation-triangle"></i> Términos de Uso - Cliente</h3>
+            <ul>
+                <li><strong>⚠️ USO EXCLUSIVAMENTE PERSONAL</strong></li>
+                <li>✗ NO compartas esta key con terceros</li>
+                <li>✗ NO revendas el acceso a la API</li>
+                <li>✗ NO uses la API para fines ilegales</li>
+                <li>✓ Respeta los límites de uso (100 req/15min)</li>
+                <li>✓ La key expirará automáticamente según la duración</li>
+                <li>⚠️ El abuso resultará en bloqueo permanente</li>
+                <li>⚠️ Todas las consultas quedan registradas</li>
+            </ul>
+        `;
+        termsContainer.className = 'terms-box client-terms';
+    }
+    
+    termsContainer.innerHTML = termsHTML;
+    
+    // Mostrar modal
+    modal.classList.add('active');
+}
+
+function closeWelcomeModal() {
+    document.getElementById('welcome-key-modal').classList.remove('active');
+}
+
+window.closeWelcomeModal = closeWelcomeModal;
+
+window.copyWelcomeKey = () => {
+    const key = window.currentWelcomeKey;
+    navigator.clipboard.writeText(key);
+    UI.toast('¡Key copiada al portapapeles!', 'success');
+};
+
+window.copyExampleUrl = (url) => {
+    navigator.clipboard.writeText(url);
+    UI.toast('¡Link copiado! Cambia el DNI/teléfono/nombre por el real', 'success');
+};
+
+// ===== FILTRAR KEYS POR USUARIO =====
+// Modificar loadKeys para filtrar por usuario
+const originalLoadKeys = loadKeys;
+async function loadKeys() {
+    try {
+        const response = await API.request('/api/keys');
+        let keys = response.data || [];
+        
+        // Si NO es admin, filtrar solo mis keys
+        if (state.user.role !== 'admin') {
+            keys = keys.filter(k => k.userId === state.user.id || k.userId._id === state.user.id);
+        }
+        
+        const tbody = document.getElementById('keys-table-body');
+        
+        if (keys.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay keys creadas</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = keys.map(key => {
+            const timeInfo = calculateTimeRemaining(key.expiresAt);
+            const isExpired = timeInfo.ms <= 0;
+            
+            return `
+                <tr data-key-id="${key._id}" data-expires="${key.expiresAt}">
+                    <td><code>${key.key}</code></td>
+                    <td><span class="endpoint-badge">${key.endpoint.toUpperCase()}</span></td>
+                    <td>${key.duration}</td>
+                    <td>
+                        <div class="time-countdown ${timeInfo.class}" data-expires="${key.expiresAt}">
+                            <i class="fas fa-clock"></i>
+                            <span class="time-text">${timeInfo.text}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge ${key.active && !isExpired ? 'active' : 'inactive'}">
+                            ${key.active && !isExpired ? 'Activa' : 'Inactiva'}
+                        </span>
+                    </td>
+                    <td>
+                        ${!isExpired && key.canRenew ? `
+                            <button class="btn-renew" onclick="openRenewModal('${key._id}')">
+                                <i class="fas fa-redo"></i> Renovar
+                            </button>
+                        ` : ''}
+                        <button class="btn-delete" onclick="deleteKey('${key._id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        // Iniciar actualización automática de contadores
+        startCountdownUpdates();
+        
+        // Renderizar URLs listas
+        renderReadyUrls(keys);
+    } catch (error) {
+        console.error('Error cargando keys:', error);
+        UI.toast('Error cargando keys', 'error');
+    }
+}
+
+// ===== OCULTAR ELEMENTOS SEGÚN ROL =====
+function updateRoleVisibility() {
+    const role = state.user.role;
+    
+    // Ocultar elementos solo para admins
+    document.querySelectorAll('.admin-only').forEach(el => {
+        el.style.display = (role === 'admin') ? '' : 'none';
+    });
+    
+    // Ocultar elementos para admin y vendedor
+    document.querySelectorAll('.admin-vendor-only').forEach(el => {
+        el.style.display = (role === 'admin' || role === 'vendedor') ? '' : 'none';
+    });
+    
+    // Ocultar elementos para cliente y vendedor (NO para admin)
+    document.querySelectorAll('.client-vendor-only').forEach(el => {
+        el.style.display = (role !== 'admin') ? '' : 'none';
+    });
+}
+
 // ===== INICIALIZACIÓN =====
 window.addEventListener('DOMContentLoaded', () => {
     // Verificar si hay token guardado
@@ -1412,6 +1677,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 state.user = response.user;
                 UI.showScreen('dashboard-screen');
                 UI.updateUserDisplay();
+                updateRoleVisibility(); // Actualizar visibilidad según rol
                 loadDashboard();
             }
         }).catch(() => {
