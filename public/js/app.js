@@ -1,4 +1,5 @@
 // ===== ESTADO GLOBAL =====
+// Version: 2.0.1 - Fix event listener duplicado
 const state = {
     user: null,
     token: null,
