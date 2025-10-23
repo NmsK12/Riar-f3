@@ -431,34 +431,6 @@ document.getElementById('create-key-btn')?.addEventListener('click', () => {
     UI.showModal('create-key-modal');
 });
 
-// Formulario crear key
-document.getElementById('create-key-form')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    const data = {
-        endpoint: formData.get('endpoint'),
-        duration: formData.get('duration'),
-        userId: formData.get('userId') || null
-    };
-
-    try {
-        const response = await API.createKey(data);
-        
-        if (response.success) {
-            UI.toast('Key creada exitosamente', 'success');
-            UI.hideModal('create-key-modal');
-            e.target.reset();
-            await loadKeys();
-            
-            // Mostrar key creada
-            alert(`Key creada exitosamente:\n\n${response.data.key}\n\nEndpoint: ${response.data.endpoint}\nExpira: ${new Date(response.data.expiresAt).toLocaleString()}`);
-        }
-    } catch (error) {
-        UI.toast(error.message, 'error');
-    }
-});
-
 // Copiar key
 window.copyKey = (key) => {
     navigator.clipboard.writeText(key);
@@ -958,7 +930,7 @@ document.getElementById('renew-key-form')?.addEventListener('submit', async (e) 
     }
 });
 
-// Actualizar el formulario de crear key para usar tiempo personalizado
+// Formulario crear key con tiempo personalizado
 document.getElementById('create-key-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -981,9 +953,12 @@ document.getElementById('create-key-form')?.addEventListener('submit', async (e)
         
         if (response.success) {
             UI.toast(`Key creada exitosamente para ${durationAmount} ${durationUnit}`, 'success');
-            UI.closeModal('create-key-modal');
+            UI.hideModal('create-key-modal');
             e.target.reset();
             await loadKeys();
+            
+            // Mostrar key generada
+            alert(`✅ Key creada exitosamente!\n\n🔑 Key: ${response.data.key}\n📍 Endpoint: ${response.data.endpoint.toUpperCase()}\n⏰ Expira: ${new Date(response.data.expiresAt).toLocaleString()}`);
         }
     } catch (error) {
         UI.toast(error.message, 'error');
