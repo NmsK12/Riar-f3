@@ -888,10 +888,203 @@ async function loadKeys() {
         
         // Iniciar actualización automática de contadores
         startCountdownUpdates();
+        
+        // Renderizar URLs listas
+        renderReadyUrls(keys);
     } catch (error) {
         console.error('Error cargando keys:', error);
         UI.toast('Error cargando keys', 'error');
     }
+}
+
+// Renderizar URLs listas para copiar
+function renderReadyUrls(keys) {
+    const container = document.getElementById('ready-urls-list');
+    const API_BASE_URL = process.env.API_URL || 'https://sisfoh-api.up.railway.app';
+    
+    const activeKeys = keys.filter(k => {
+        const timeInfo = calculateTimeRemaining(k.expiresAt);
+        return k.active && timeInfo.ms > 0;
+    });
+    
+    if (activeKeys.length === 0) {
+        container.innerHTML = `
+            <div class="no-keys-message">
+                <i class="fas fa-info-circle"></i>
+                <p>No tienes keys activas. Crea una key para ver las URLs listas para usar.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = activeKeys.map(key => {
+        const timeInfo = calculateTimeRemaining(key.expiresAt);
+        const endpoint = key.endpoint;
+        
+        // Generar ejemplos de URLs según el endpoint
+        let examples = '';
+        
+        if (endpoint === 'dni' || endpoint === 'all') {
+            examples += `
+                <div class="url-example-item">
+                    <span class="url-label">🔍 DNI:</span>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/dni?dni=80660244&key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/dni?dni=80660244&key=${key.key}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (endpoint === 'telp' || endpoint === 'all') {
+            examples += `
+                <div class="url-example-item">
+                    <span class="url-label">📱 TEL:</span>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/telp?tel=904684131&key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/telp?tel=904684131&key=${key.key}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (endpoint === 'nom' || endpoint === 'all') {
+            examples += `
+                <div class="url-example-item">
+                    <span class="url-label">👤 NOM:</span>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/nom?nom=MARIA%20ELENA&key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/nom?nom=MARIA%20ELENA&key=${key.key}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (endpoint === 'arg' || endpoint === 'all') {
+            examples += `
+                <div class="url-example-item">
+                    <span class="url-label">🌳 ARG:</span>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/arg?dni=80660244&key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/arg?dni=80660244&key=${key.key}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (endpoint === 'corr' || endpoint === 'all') {
+            examples += `
+                <div class="url-example-item">
+                    <span class="url-label">📧 CORR:</span>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/corr?dni=80660244&key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/corr?dni=80660244&key=${key.key}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (endpoint === 'risk' || endpoint === 'all') {
+            examples += `
+                <div class="url-example-item">
+                    <span class="url-label">⚠️ RISK:</span>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/risk?dni=80660244&key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/risk?dni=80660244&key=${key.key}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (endpoint === 'foto' || endpoint === 'all') {
+            examples += `
+                <div class="url-example-item">
+                    <span class="url-label">📷 FOTO:</span>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/foto?dni=80660244&key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/foto?dni=80660244&key=${key.key}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (endpoint === 'sunat' || endpoint === 'all') {
+            examples += `
+                <div class="url-example-item">
+                    <span class="url-label">💼 SUNAT:</span>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/sunat?dni=80660244&key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/sunat?dni=80660244&key=${key.key}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (endpoint === 'meta' || endpoint === 'all') {
+            examples += `
+                <div class="url-example-item">
+                    <span class="url-label">🔥 META:</span>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/meta?dni=80660244&key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/meta?dni=80660244&key=${key.key}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="url-ready-item">
+                <div class="url-header">
+                    <span class="url-endpoint-badge">
+                        <i class="fas fa-key"></i> ${endpoint.toUpperCase()}
+                    </span>
+                    <span class="url-expiry">
+                        <i class="fas fa-clock"></i> Expira en ${timeInfo.text}
+                    </span>
+                </div>
+                <div class="url-examples">
+                    ${examples}
+                </div>
+                <div class="url-note">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Reemplaza "80660244" con el DNI/teléfono real que quieres consultar.</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Copiar URL y mostrar feedback visual
+window.copyUrl = (button, url) => {
+    navigator.clipboard.writeText(url);
+    const originalHtml = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+    button.classList.add('copied');
+    
+    setTimeout(() => {
+        button.innerHTML = originalHtml;
+        button.classList.remove('copied');
+    }, 2000);
+    
+    UI.toast('URL copiada al portapapeles', 'success');
 }
 
 // Abrir modal de renovar

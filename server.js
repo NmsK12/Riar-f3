@@ -4,22 +4,118 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
 
 const app = express();
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3001',
-  credentials: true
+// ===== SEGURIDAD MÁXIMA =====
+
+// 1. Helmet - Headers de seguridad
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+      fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"]
+    }
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  },
+  referrerPolicy: { policy: 'no-referrer' },
+  noSniff: true,
+  xssFilter: true,
+  hidePoweredBy: true
 }));
 
-// Servir archivos estáticos
-app.use(express.static('public'));
+// 2. Rate Limiting - Anti scraping/brute force
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100, // 100 requests por IP
+  message: {
+    success: false,
+    message: '🚫 Demasiadas solicitudes. Intenta de nuevo en 15 minutos.',
+    error: 'RATE_LIMIT_EXCEEDED'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// Rate limit más estricto para login
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5, // Solo 5 intentos de login
+  message: {
+    success: false,
+    message: '🚫 Demasiados intentos de login. Espera 15 minutos.',
+    error: 'AUTH_RATE_LIMIT'
+  }
+});
+
+app.use('/api/', limiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
+// 3. Deshabilitar caché completamente
+app.use((req, res, next) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block'
+  });
+  next();
+});
+
+// 4. Middleware básico
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
+
+// 5. CORS con configuración segura
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:3001',
+  'https://web-production-a57a5.up.railway.app'
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('❌ Acceso denegado por CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+  maxAge: 86400 // 24 horas
+}));
+
+// 6. Servir archivos estáticos con headers de seguridad
+app.use(express.static('public', {
+  maxAge: 0,
+  etag: false,
+  lastModified: false,
+  setHeaders: (res) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  }
+}));
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'tu-secreto-super-seguro-cambialo';
@@ -154,10 +250,13 @@ app.post('/api/auth/login', async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    // Cookie con máxima seguridad
     res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      httpOnly: true, // No accesible desde JavaScript
+      secure: true, // Solo HTTPS
+      sameSite: 'strict', // Protección CSRF
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+      path: '/'
     });
 
     res.json({
@@ -211,10 +310,13 @@ app.post('/api/auth/verify-ip', async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    // Cookie con máxima seguridad
     res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      httpOnly: true, // No accesible desde JavaScript
+      secure: true, // Solo HTTPS
+      sameSite: 'strict', // Protección CSRF
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+      path: '/'
     });
 
     res.json({
