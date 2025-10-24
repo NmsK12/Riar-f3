@@ -432,6 +432,13 @@ async function loadCriticalAlerts() {
 
 // ===== KEYS =====
 async function loadKeys() {
+    const tbody = document.getElementById('keys-table-body');
+    
+    // Mostrar skeleton loader
+    if (tbody && typeof SkeletonLoaders !== 'undefined') {
+        tbody.innerHTML = SkeletonLoaders.table(6, 3);
+    }
+    
     try {
         const response = await API.getKeys();
         state.keys = response.data || [];
@@ -439,6 +446,9 @@ async function loadKeys() {
     } catch (error) {
         console.error('Error cargando keys:', error);
         UI.toast('Error cargando keys', 'error');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--danger);">Error cargando keys</td></tr>';
+        }
     }
 }
 
@@ -503,6 +513,13 @@ window.deleteKey = async (id) => {
 async function loadUsers() {
     if (state.user.role !== 'admin' && state.user.role !== 'vendedor') return;
 
+    const tbody = document.getElementById('users-table-body');
+    
+    // Mostrar skeleton loader
+    if (tbody && typeof SkeletonLoaders !== 'undefined') {
+        tbody.innerHTML = SkeletonLoaders.table(6, 3);
+    }
+
     try {
         const response = await API.getUsers();
         state.users = response.data || [];
@@ -510,6 +527,9 @@ async function loadUsers() {
     } catch (error) {
         console.error('Error cargando usuarios:', error);
         UI.toast('Error cargando usuarios', 'error');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--danger);">Error cargando usuarios</td></tr>';
+        }
     }
 }
 
