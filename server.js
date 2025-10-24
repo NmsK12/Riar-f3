@@ -514,8 +514,9 @@ app.use('/api/key-requests', keyRequestsRouter);
 const securityRouter = require('./routes/security');
 const ticketsRouter = require('./routes/tickets');
 
-app.use('/api/security', securityRouter);
-app.use('/api/tickets', ticketsRouter);
+// Aplicar autenticación a rutas protegidas
+app.use('/api/security', authenticate, securityRouter);
+app.use('/api/tickets', authenticate, ticketsRouter);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

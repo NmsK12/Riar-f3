@@ -204,7 +204,7 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
         } else if (response.success) {
             state.user = response.user;
             state.token = response.token;
-            localStorage.setItem('token', response.token);
+            // NO guardar token en localStorage por seguridad
             UI.showScreen('dashboard-screen');
             UI.updateUserDisplay();
             await loadDashboard();
@@ -230,7 +230,7 @@ document.getElementById('verify-ip-btn')?.addEventListener('click', async () => 
         
         if (response.success) {
             state.token = response.token;
-            localStorage.setItem('token', response.token);
+            // NO guardar token en localStorage por seguridad
             UI.showScreen('dashboard-screen');
             UI.updateUserDisplay();
             await loadDashboard();
@@ -256,7 +256,7 @@ document.getElementById('logout-btn')?.addEventListener('click', () => {
         
         state.user = null;
         state.token = null;
-        localStorage.removeItem('token');
+        // No hay token en localStorage que remover
         UI.showScreen('login-screen');
         UI.toast('Sesión cerrada', 'info');
     }
@@ -396,7 +396,10 @@ async function loadCriticalAlerts() {
         }
         
     } catch (error) {
-        console.error('Error cargando alertas críticas:', error);
+        // Silenciar error si no hay sesión (403 es esperado)
+        if (error.message !== 'No tienes permisos') {
+            console.error('Error cargando alertas críticas:', error);
+        }
     }
 }
 
@@ -1714,27 +1717,20 @@ function updateRoleVisibility() {
 
 // ===== INICIALIZACIÓN =====
 window.addEventListener('DOMContentLoaded', () => {
-    // Verificar si hay token guardado
-    const savedToken = localStorage.getItem('token');
+    // ===== SEGURIDAD MÁXIMA =====
+    // NO persistir sesión - Siempre mostrar login al cargar/recargar
+    // Esto previene:
+    // - Acceso no autorizado si alguien usa el mismo dispositivo
+    // - Tokens expirados persistentes
+    // - Sesiones activas sin conocimiento del usuario
     
-    if (savedToken) {
-        state.token = savedToken;
-        // Intentar cargar datos del usuario
-        API.request('/api/auth/me').then(response => {
-            if (response.success) {
-                state.user = response.user;
-                UI.showScreen('dashboard-screen');
-                UI.updateUserDisplay();
-                updateRoleVisibility(); // Actualizar visibilidad según rol
-                loadDashboard();
-            }
-        }).catch(() => {
-            localStorage.removeItem('token');
-            UI.showScreen('login-screen');
-        });
-    } else {
-        UI.showScreen('login-screen');
-    }
+    state.user = null;
+    state.token = null;
+    UI.showScreen('login-screen');
+    
+    // Limpiar cualquier dato antiguo
+    localStorage.clear();
+    sessionStorage.clear();
 });
 
 // ===== SISTEMA DE TICKETS =====
@@ -2225,7 +2221,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 const originalLoginSuccess = async (response) => {
     state.token = response.token;
     state.user = response.user;
-    localStorage.setItem('token', response.token);
+    // NO guardar token en localStorage por seguridad
     
     UI.showScreen('dashboard-screen');
     UI.updateUserDisplay();
