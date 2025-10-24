@@ -128,6 +128,10 @@ const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb
 const User = require('./models/User');
 const ApiKey = require('./models/ApiKey');
 const VerificationCode = require('./models/VerificationCode');
+const Blacklist = require('./models/Blacklist');
+const AuditLog = require('./models/AuditLog');
+const ApiLog = require('./models/ApiLog');
+const Ticket = require('./models/Ticket');
 
 // Conectar a MongoDB
 mongoose.connect(MONGODB_URI, {
@@ -459,6 +463,10 @@ const statsRouter = require('./routes/stats');
 const profileRouter = require('./routes/profile');
 const keyRequestsRouter = require('./routes/keyRequests');
 
+// Middleware de seguridad avanzada
+const { createUserRateLimit, detectSuspiciousPatterns } = require('./middleware/advancedRateLimit');
+const { logAction } = require('./middleware/auditLogger');
+
 // Ruta pública para validar keys (usado por la API principal)
 app.post('/api/keys/validate', async (req, res) => {
   try {
@@ -510,12 +518,23 @@ app.post('/api/keys/validate', async (req, res) => {
   }
 });
 
-app.use('/api/keys', authenticate, keysRouter);
-app.use('/api/users', authenticate, authorize('admin', 'vendedor'), usersRouter);
-app.use('/api/notifications', authenticate, notificationsRouter);
-app.use('/api/stats', authenticate, statsRouter);
-app.use('/api/profile', authenticate, profileRouter);
-app.use('/api/key-requests', authenticate, keyRequestsRouter);
+// Aplicar middleware de seguridad avanzada a todas las rutas protegidas
+app.use('/api/', authenticate, detectSuspiciousPatterns, createUserRateLimit());
+
+// Rutas protegidas
+app.use('/api/keys', keysRouter);
+app.use('/api/users', authorize('admin', 'vendedor'), usersRouter);
+app.use('/api/notifications', notificationsRouter);
+app.use('/api/stats', statsRouter);
+app.use('/api/profile', profileRouter);
+app.use('/api/key-requests', keyRequestsRouter);
+
+// Rutas de seguridad y soporte
+const securityRouter = require('./routes/security');
+const ticketsRouter = require('./routes/tickets');
+
+app.use('/api/security', securityRouter);
+app.use('/api/tickets', ticketsRouter);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

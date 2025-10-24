@@ -18,9 +18,18 @@
     <link rel="stylesheet" href="/css/style.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/css/ready-urls.css">
     <link rel="stylesheet" href="/css/welcome-modal.css">
+    <link rel="stylesheet" href="/css/theme-toggle.css">
+    <link rel="stylesheet" href="/css/animations.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- Toggle de Tema Oscuro/Claro -->
+    <div class="theme-toggle" id="theme-toggle">
+        <i class="fas fa-moon theme-toggle-icon moon"></i>
+        <i class="fas fa-sun theme-toggle-icon sun"></i>
+        <div class="theme-toggle-switch"></div>
+    </div>
+
     <!-- Pantalla de Login -->
     <div id="login-screen" class="screen active">
         <div class="login-container">
@@ -219,6 +228,16 @@
                 <a href="#" class="nav-item admin-only" data-section="notifications">
                     <i class="fas fa-bell"></i> Notificaciones
                     <span class="notification-badge" id="notification-count">0</span>
+                </a>
+                <a href="#" class="nav-item" data-section="tickets">
+                    <i class="fas fa-ticket-alt"></i> Soporte
+                    <span class="notification-badge" id="tickets-count">0</span>
+                </a>
+                <a href="#" class="nav-item admin-only" data-section="security">
+                    <i class="fas fa-shield-alt"></i> Seguridad
+                </a>
+                <a href="#" class="nav-item" data-section="help">
+                    <i class="fas fa-question-circle"></i> Ayuda
                 </a>
                 <a href="#" class="nav-item" data-section="profile">
                     <i class="fas fa-user-circle"></i> Mi Perfil
@@ -448,6 +467,232 @@
                     </form>
                 </div>
             </section>
+
+            <!-- Sección de Tickets de Soporte -->
+            <section id="tickets-section" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-ticket-alt"></i> Centro de Soporte</h1>
+                    <button class="btn-primary" id="create-ticket-btn">
+                        <i class="fas fa-plus"></i> Nuevo Ticket
+                    </button>
+                </div>
+
+                <div class="tickets-container">
+                    <!-- Filtros -->
+                    <div class="tickets-filters">
+                        <select id="ticket-status-filter" class="filter-select">
+                            <option value="">Todos los Estados</option>
+                            <option value="open">Abiertos</option>
+                            <option value="in_progress">En Progreso</option>
+                            <option value="waiting_response">Esperando Respuesta</option>
+                            <option value="resolved">Resueltos</option>
+                            <option value="closed">Cerrados</option>
+                        </select>
+
+                        <select id="ticket-priority-filter" class="filter-select">
+                            <option value="">Todas las Prioridades</option>
+                            <option value="urgent">Urgente</option>
+                            <option value="high">Alta</option>
+                            <option value="medium">Media</option>
+                            <option value="low">Baja</option>
+                        </select>
+                    </div>
+
+                    <!-- Lista de tickets -->
+                    <div id="tickets-list" class="tickets-list">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de Seguridad (Admin only) -->
+            <section id="security-section" class="content-section admin-only">
+                <div class="section-header">
+                    <h1><i class="fas fa-shield-alt"></i> Centro de Seguridad</h1>
+                </div>
+
+                <div class="security-tabs">
+                    <button class="tab-btn active" data-tab="blacklist">IPs Bloqueadas</button>
+                    <button class="tab-btn" data-tab="audit-logs">Auditoría</button>
+                    <button class="tab-btn" data-tab="api-logs">Logs de API</button>
+                </div>
+
+                <!-- Tab: Blacklist -->
+                <div id="blacklist-tab" class="security-tab-content active">
+                    <div class="tab-header">
+                        <h2>IPs Bloqueadas</h2>
+                        <button class="btn-primary" id="block-ip-btn">
+                            <i class="fas fa-ban"></i> Bloquear IP
+                        </button>
+                    </div>
+                    <div id="blacklist-container" class="data-table-container">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Tab: Audit Logs -->
+                <div id="audit-logs-tab" class="security-tab-content">
+                    <div class="tab-header">
+                        <h2>Registro de Auditoría</h2>
+                        <div class="filter-group">
+                            <select id="audit-action-filter">
+                                <option value="">Todas las Acciones</option>
+                                <option value="login">Login</option>
+                                <option value="create_key">Crear Key</option>
+                                <option value="delete_key">Eliminar Key</option>
+                                <option value="create_user">Crear Usuario</option>
+                                <option value="block_ip">Bloquear IP</option>
+                            </select>
+                            <button class="btn-secondary" id="export-audit-btn">
+                                <i class="fas fa-download"></i> Exportar
+                            </button>
+                        </div>
+                    </div>
+                    <div id="audit-logs-container" class="data-table-container">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Tab: API Logs -->
+                <div id="api-logs-tab" class="security-tab-content">
+                    <div class="tab-header">
+                        <h2>Logs de Consultas API</h2>
+                        <div class="stats-summary">
+                            <div class="stat-item">
+                                <span class="stat-label">Total Consultas:</span>
+                                <span class="stat-value" id="total-requests">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Tasa de Éxito:</span>
+                                <span class="stat-value" id="success-rate">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Caché Hit Rate:</span>
+                                <span class="stat-value" id="cache-hit-rate">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="api-logs-container" class="data-table-container">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de Ayuda / Base de Conocimiento -->
+            <section id="help-section" class="content-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-question-circle"></i> Centro de Ayuda</h1>
+                </div>
+
+                <div class="help-search">
+                    <input type="text" id="help-search-input" placeholder="🔍 Buscar en la ayuda...">
+                </div>
+
+                <div class="help-categories">
+                    <!-- Primeros Pasos -->
+                    <div class="help-category animate-fade-in-up">
+                        <div class="help-category-header">
+                            <i class="fas fa-rocket"></i>
+                            <h2>Primeros Pasos</h2>
+                        </div>
+                        <div class="help-items">
+                            <div class="help-item">
+                                <h3>¿Cómo crear mi primera API Key?</h3>
+                                <p>Ve a la sección "Mis Keys" → Click en "Nueva Key" → Selecciona el endpoint que necesites → Especifica la duración → Click en "Generar Key"</p>
+                            </div>
+                            <div class="help-item">
+                                <h3>¿Cómo usar mi API Key?</h3>
+                                <p>Agrega el parámetro <code>?key=TU_KEY</code> al final de cualquier URL del endpoint. Ejemplo: <code>https://api.com/dni?dni=12345678&key=tu_key_aqui</code></p>
+                            </div>
+                            <div class="help-item">
+                                <h3>¿Qué endpoints están disponibles?</h3>
+                                <p><strong>DNI:</strong> Datos personales completos<br>
+                                <strong>TELP:</strong> Búsqueda por teléfono<br>
+                                <strong>NOM:</strong> Búsqueda por nombres<br>
+                                <strong>ARG:</strong> Árbol genealógico<br>
+                                <strong>RISK:</strong> Datos de riesgo crediticio<br>
+                                <strong>FOTO:</strong> Fotografía en base64<br>
+                                <strong>SUNAT:</strong> Historial laboral<br>
+                                <strong>META:</strong> Todos los datos disponibles</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQs -->
+                    <div class="help-category animate-fade-in-up delay-100">
+                        <div class="help-category-header">
+                            <i class="fas fa-question"></i>
+                            <h2>Preguntas Frecuentes</h2>
+                        </div>
+                        <div class="help-items">
+                            <div class="help-item">
+                                <h3>¿Puedo renovar una key expirada?</h3>
+                                <p>Sí, las keys con el botón "Renovar" pueden extenderse. Click en el botón, especifica el nuevo tiempo y listo.</p>
+                            </div>
+                            <div class="help-item">
+                                <h3>¿Qué pasa si excedo el límite de peticiones?</h3>
+                                <p>Hay un límite de 100 peticiones cada 15 minutos. Si lo excedes, recibirás un error 429. Espera 15 minutos o contacta a soporte para aumentar tu límite.</p>
+                            </div>
+                            <div class="help-item">
+                                <h3>¿Mi IP puede ser bloqueada?</h3>
+                                <p>Sí, si detectamos actividad sospechosa o exceso de peticiones, tu IP puede ser bloqueada automáticamente. Usa la API responsablemente.</p>
+                            </div>
+                            <div class="help-item">
+                                <h3>¿Cómo solicito más endpoints?</h3>
+                                <p>Ve a "Solicitar Keys" → Selecciona los endpoints que necesites → Elige la duración → Envía la solicitud. Un admin/vendedor la aprobará pronto.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Roles y Permisos -->
+                    <div class="help-category animate-fade-in-up delay-200" id="roles-help">
+                        <div class="help-category-header">
+                            <i class="fas fa-users-cog"></i>
+                            <h2>Roles y Permisos</h2>
+                        </div>
+                        <div class="help-items">
+                            <div class="help-item">
+                                <h3>👤 Cliente</h3>
+                                <p><strong>Puede:</strong> Crear keys para sí mismo, solicitar nuevos endpoints, ver sus propias keys y consultas, abrir tickets de soporte.</p>
+                                <p><strong>No puede:</strong> Ver otros usuarios, aprobar solicitudes, acceder a logs del sistema.</p>
+                            </div>
+                            <div class="help-item">
+                                <h3>💼 Vendedor</h3>
+                                <p><strong>Puede:</strong> Todo lo del Cliente + Crear hasta 5 usuarios tipo Cliente, aprobar solicitudes de keys de sus clientes, ver logs de sus clientes.</p>
+                                <p><strong>No puede:</strong> Crear otros vendedores, ver usuarios de otros vendedores, acceder a seguridad del sistema.</p>
+                            </div>
+                            <div class="help-item">
+                                <h3>🛡️ Administrador</h3>
+                                <p><strong>Puede:</strong> TODO. Gestión completa de usuarios, keys, seguridad, logs, blacklist, auditoría, configuración del sistema.</p>
+                                <p><strong>Responsabilidades:</strong> Monitorear el sistema, aprobar usuarios nuevos, revisar actividad sospechosa.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Soporte -->
+                    <div class="help-category animate-fade-in-up delay-300">
+                        <div class="help-category-header">
+                            <i class="fas fa-life-ring"></i>
+                            <h2>Contacto y Soporte</h2>
+                        </div>
+                        <div class="help-items">
+                            <div class="help-item">
+                                <h3>¿Necesitas ayuda personalizada?</h3>
+                                <p>Abre un ticket en la sección "Soporte" del panel. Responderemos lo antes posible.</p>
+                            </div>
+                            <div class="help-item">
+                                <h3>Contactos de Emergencia</h3>
+                                <p>
+                                    <strong>Telegram:</strong><br>
+                                    • @zGatoO - Administrador Principal<br>
+                                    • @choco_tete - Soporte Técnico<br>
+                                    • @WinniePoohOFC - Desarrollo
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -605,6 +850,52 @@
         </div>
     </div>
 
+    <!-- Modal para crear Ticket -->
+    <div id="create-ticket-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-ticket-alt"></i> Nuevo Ticket de Soporte</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="create-ticket-form">
+                <div class="form-group">
+                    <label for="ticket-subject">Asunto</label>
+                    <input type="text" id="ticket-subject" name="subject" placeholder="Describe brevemente tu problema" required maxlength="200">
+                </div>
+
+                <div class="form-group">
+                    <label for="ticket-category">Categoría</label>
+                    <select id="ticket-category" name="category" required>
+                        <option value="technical">🔧 Técnico</option>
+                        <option value="billing">💰 Facturación</option>
+                        <option value="feature_request">💡 Nueva Función</option>
+                        <option value="bug_report">🐛 Reporte de Bug</option>
+                        <option value="other">❓ Otro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="ticket-priority">Prioridad</label>
+                    <select id="ticket-priority" name="priority" required>
+                        <option value="low">Baja</option>
+                        <option value="medium" selected>Media</option>
+                        <option value="high">Alta</option>
+                        <option value="urgent">Urgente</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="ticket-message">Mensaje</label>
+                    <textarea id="ticket-message" name="message" rows="6" placeholder="Describe tu problema en detalle..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-paper-plane"></i> Enviar Ticket
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal de Bienvenida al crear Key -->
     <div id="welcome-key-modal" class="modal">
         <div class="modal-content modal-welcome">
@@ -666,6 +957,7 @@
     <div id="toast-container"></div>
 
     <!-- Scripts -->
+    <script src="/js/theme.js"></script>
     <script src="/js/app.js"></script>
 </body>
 </html>
