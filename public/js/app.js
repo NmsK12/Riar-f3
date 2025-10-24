@@ -298,14 +298,18 @@ async function loadDashboard() {
     try {
         // Cargar endpoints
         const endpoints = [
-            { id: 'dni', icon: 'fa-id-card', name: 'DNI', desc: 'Consulta de personas' },
-            { id: 'telp', icon: 'fa-phone', name: 'TELP', desc: 'Teléfonos' },
-            { id: 'nom', icon: 'fa-user', name: 'NOM', desc: 'Búsqueda por nombres' },
-            { id: 'arg', icon: 'fa-sitemap', name: 'ARG', desc: 'Árbol genealógico' },
-            { id: 'risk', icon: 'fa-exclamation-triangle', name: 'RISK', desc: 'Datos de riesgo' },
-            { id: 'foto', icon: 'fa-camera', name: 'FOTO', desc: 'Fotografías' },
-            { id: 'sunat', icon: 'fa-building', name: 'SUNAT', desc: 'Datos laborales' },
-            { id: 'meta', icon: 'fa-database', name: 'META', desc: 'Todos los datos' }
+            { id: 'dni', icon: 'fa-id-card', name: '/dni?dni=', desc: 'Consulta de personas' },
+            { id: 'telp', icon: 'fa-phone', name: '/telp?tel=', desc: 'Teléfonos' },
+            { id: 'nom', icon: 'fa-user', name: '/nom?nom=', desc: 'Búsqueda por nombres' },
+            { id: 'arg', icon: 'fa-sitemap', name: '/arg?dni=', desc: 'Árbol genealógico' },
+            { id: 'risk', icon: 'fa-exclamation-triangle', name: '/risk?dni=', desc: 'Datos de riesgo' },
+            { id: 'foto', icon: 'fa-camera', name: '/foto?dni=', desc: 'Fotografías' },
+            { id: 'sunat', icon: 'fa-building', name: '/sunat?dni=', desc: 'Datos laborales' },
+            { id: 'meta', icon: 'fa-database', name: '/meta?dni=', desc: 'Todos los datos' },
+            { id: 'reniec', icon: 'fa-landmark', name: '/reniec?dni=', desc: 'Registro Nacional' },
+            { id: 'sentinel', icon: 'fa-shield-alt', name: '/sentinel/', desc: 'Sistema Sentinel' },
+            { id: 'denplaca', icon: 'fa-car', name: '/denplaca/', desc: 'Denuncias por placa' },
+            { id: 'den', icon: 'fa-file-alt', name: '/den/', desc: 'Denuncias por DNI' }
         ];
 
         const endpointsGrid = document.getElementById('endpoints-grid');
