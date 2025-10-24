@@ -5,7 +5,8 @@ const state = {
     token: null,
     keys: [],
     users: [],
-    notifications: []
+    notifications: [],
+    criticalAlertsInterval: null // Guardar referencia al intervalo
 };
 
 // URL de la API principal
@@ -247,6 +248,12 @@ document.getElementById('verify-ip-btn')?.addEventListener('click', async () => 
 // ===== LOGOUT =====
 document.getElementById('logout-btn')?.addEventListener('click', () => {
     if (confirm('¿Seguro que quieres cerrar sesión?')) {
+        // Limpiar intervalo de alertas críticas
+        if (state.criticalAlertsInterval) {
+            clearInterval(state.criticalAlertsInterval);
+            state.criticalAlertsInterval = null;
+        }
+        
         state.user = null;
         state.token = null;
         localStorage.removeItem('token');
@@ -338,7 +345,11 @@ async function loadDashboard() {
             // Cargar alertas críticas
             loadCriticalAlerts();
             // Actualizar alertas cada 30 segundos
-            setInterval(loadCriticalAlerts, 30000);
+            // Limpiar intervalo anterior si existe
+            if (state.criticalAlertsInterval) {
+                clearInterval(state.criticalAlertsInterval);
+            }
+            state.criticalAlertsInterval = setInterval(loadCriticalAlerts, 30000);
         }
 
         // Cargar keys
