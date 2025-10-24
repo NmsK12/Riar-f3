@@ -1665,3 +1665,529 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// ===== SISTEMA DE TICKETS =====
+
+async function loadTickets() {
+    try {
+        const response = await API.request('/api/tickets');
+        const tickets = response.data || [];
+        
+        renderTickets(tickets);
+        
+        // Actualizar badge
+        const openTickets = tickets.filter(t => t.status === 'open' || t.status === 'in_progress').length;
+        document.getElementById('tickets-count').textContent = openTickets;
+    } catch (error) {
+        console.error('Error cargando tickets:', error);
+        UI.toast('Error cargando tickets', 'error');
+    }
+}
+
+function renderTickets(tickets) {
+    const container = document.getElementById('tickets-list');
+    
+    if (!container) return;
+    
+    if (tickets.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">No hay tickets</p>';
+        return;
+    }
+    
+    const statusColors = {
+        open: 'info',
+        in_progress: 'warning',
+        waiting_response: 'warning',
+        resolved: 'success',
+        closed: 'muted'
+    };
+    
+    const priorityIcons = {
+        urgent: '🔴',
+        high: '🟠',
+        medium: '🟡',
+        low: '🟢'
+    };
+    
+    container.innerHTML = tickets.map(ticket => {
+        const statusText = ticket.status.replace('_', ' ').toUpperCase();
+        const lastMessage = ticket.messages[ticket.messages.length - 1];
+        
+        return `
+            <div class="ticket-item animate-fade-in-up" onclick="openTicket('${ticket._id}')">
+                <div class="ticket-header">
+                    <div class="ticket-number">${ticket.ticketNumber}</div>
+                    <span class="status-badge ${statusColors[ticket.status]}">${statusText}</span>
+                </div>
+                <div class="ticket-subject">
+                    ${priorityIcons[ticket.priority]} ${ticket.subject}
+                </div>
+                <div class="ticket-meta">
+                    <span><i class="fas fa-tag"></i> ${ticket.category}</span>
+                    <span><i class="fas fa-clock"></i> ${new Date(ticket.createdAt).toLocaleDateString()}</span>
+                    <span><i class="fas fa-comments"></i> ${ticket.messages.length} mensajes</span>
+                </div>
+                ${ticket.assignedTo ? `<div class="ticket-assigned"><i class="fas fa-user"></i> Asignado a ${ticket.assignedTo.username}</div>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+window.openTicket = async (ticketId) => {
+    try {
+        const response = await API.request(`/api/tickets/${ticketId}`);
+        const ticket = response.data;
+        
+        // Aquí podrías abrir un modal con los detalles del ticket
+        // Por ahora mostramos un alert simple
+        const messages = ticket.messages.map(m => 
+            `[${new Date(m.timestamp).toLocaleString()}] ${m.senderName}: ${m.message}`
+        ).join('\n\n');
+        
+        alert(`Ticket: ${ticket.ticketNumber}\n\nAsunto: ${ticket.subject}\n\nMensajes:\n${messages}`);
+    } catch (error) {
+        UI.toast('Error abriendo ticket', 'error');
+    }
+};
+
+// Event listener para crear ticket
+document.getElementById('create-ticket-btn')?.addEventListener('click', () => {
+    UI.showModal('create-ticket-modal');
+});
+
+document.getElementById('create-ticket-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = {
+        subject: formData.get('subject'),
+        category: formData.get('category'),
+        priority: formData.get('priority'),
+        message: formData.get('message')
+    };
+    
+    try {
+        const response = await API.request('/api/tickets', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+        
+        if (response.success) {
+            UI.toast('Ticket creado exitosamente', 'success');
+            UI.hideModal('create-ticket-modal');
+            e.target.reset();
+            await loadTickets();
+        }
+    } catch (error) {
+        UI.toast(error.message, 'error');
+    }
+});
+
+// Filtros de tickets
+document.getElementById('ticket-status-filter')?.addEventListener('change', async (e) => {
+    const status = e.target.value;
+    const response = await API.request(`/api/tickets${status ? `?status=${status}` : ''}`);
+    renderTickets(response.data || []);
+});
+
+document.getElementById('ticket-priority-filter')?.addEventListener('change', async (e) => {
+    const priority = e.target.value;
+    const response = await API.request(`/api/tickets${priority ? `?priority=${priority}` : ''}`);
+    renderTickets(response.data || []);
+});
+
+// ===== SISTEMA DE SEGURIDAD (ADMIN ONLY) =====
+
+async function loadSecuritySection() {
+    if (state.user.role !== 'admin') return;
+    
+    // Cargar tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            
+            // Actualizar botones
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Actualizar contenido
+            document.querySelectorAll('.security-tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`${tab}-tab`).classList.add('active');
+            
+            // Cargar datos
+            if (tab === 'blacklist') loadBlacklist();
+            else if (tab === 'audit-logs') loadAuditLogs();
+            else if (tab === 'api-logs') loadApiLogs();
+        });
+    });
+    
+    // Cargar blacklist por defecto
+    await loadBlacklist();
+}
+
+async function loadBlacklist() {
+    try {
+        const response = await API.request('/api/security/blacklist');
+        const blacklist = response.data || [];
+        
+        const container = document.getElementById('blacklist-container');
+        
+        if (blacklist.length === 0) {
+            container.innerHTML = '<p style="text-align: center; padding: 40px; color: var(--text-secondary);">No hay IPs bloqueadas</p>';
+            return;
+        }
+        
+        container.innerHTML = `
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>IP</th>
+                        <th>Razón</th>
+                        <th>Intentos</th>
+                        <th>Bloqueado</th>
+                        <th>Expira</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${blacklist.map(item => `
+                        <tr>
+                            <td><code>${item.ip}</code></td>
+                            <td><span class="badge badge-${item.reason === 'manual' ? 'warning' : 'danger'}">${item.reason}</span></td>
+                            <td>${item.attemptCount}</td>
+                            <td>${new Date(item.blockedAt).toLocaleString()}</td>
+                            <td>${item.expiresAt ? new Date(item.expiresAt).toLocaleString() : 'Permanente'}</td>
+                            <td>
+                                <button class="btn-secondary btn-sm" onclick="unblockIp('${item._id}')">
+                                    <i class="fas fa-unlock"></i> Desbloquear
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (error) {
+        console.error('Error cargando blacklist:', error);
+        UI.toast('Error cargando IPs bloqueadas', 'error');
+    }
+}
+
+window.unblockIp = async (id) => {
+    if (!confirm('¿Desbloquear esta IP?')) return;
+    
+    try {
+        await API.request(`/api/security/blacklist/${id}`, { method: 'DELETE' });
+        UI.toast('IP desbloqueada exitosamente', 'success');
+        await loadBlacklist();
+    } catch (error) {
+        UI.toast('Error desbloqueando IP', 'error');
+    }
+};
+
+document.getElementById('block-ip-btn')?.addEventListener('click', () => {
+    const ip = prompt('IP a bloquear:');
+    if (!ip) return;
+    
+    const reason = prompt('Razón:\n1=Manual\n2=Abuso\n3=Sospechoso', '1');
+    const reasonMap = { '1': 'manual', '2': 'abuse', '3': 'suspicious_pattern' };
+    const description = prompt('Descripción (opcional):');
+    const duration = prompt('Duración en horas (vacío = permanente):');
+    
+    API.request('/api/security/blacklist', {
+        method: 'POST',
+        body: JSON.stringify({
+            ip,
+            reason: reasonMap[reason] || 'manual',
+            description,
+            duration: duration ? parseInt(duration) : null
+        })
+    }).then(() => {
+        UI.toast('IP bloqueada exitosamente', 'success');
+        loadBlacklist();
+    }).catch(err => {
+        UI.toast('Error bloqueando IP', 'error');
+    });
+});
+
+async function loadAuditLogs() {
+    try {
+        const response = await API.request('/api/security/audit-logs?limit=50');
+        const logs = response.data || [];
+        
+        const container = document.getElementById('audit-logs-container');
+        
+        if (logs.length === 0) {
+            container.innerHTML = '<p style="text-align: center; padding: 40px; color: var(--text-secondary);">No hay logs de auditoría</p>';
+            return;
+        }
+        
+        const actionIcons = {
+            login: '🔐',
+            logout: '🚪',
+            create_key: '🔑',
+            delete_key: '🗑️',
+            create_user: '👤',
+            block_ip: '🚫',
+            other: '📝'
+        };
+        
+        const severityColors = {
+            low: 'success',
+            medium: 'warning',
+            high: 'danger',
+            critical: 'danger'
+        };
+        
+        container.innerHTML = `
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Usuario</th>
+                        <th>Acción</th>
+                        <th>IP</th>
+                        <th>Estado</th>
+                        <th>Severidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${logs.map(log => `
+                        <tr>
+                            <td>${new Date(log.createdAt).toLocaleString()}</td>
+                            <td>${log.username}</td>
+                            <td>${actionIcons[log.action] || '📝'} ${log.action}</td>
+                            <td><code>${log.ip}</code></td>
+                            <td><span class="status-badge ${log.status === 'success' ? 'active' : 'inactive'}">${log.status}</span></td>
+                            <td><span class="badge badge-${severityColors[log.severity]}">${log.severity}</span></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (error) {
+        console.error('Error cargando audit logs:', error);
+        UI.toast('Error cargando logs de auditoría', 'error');
+    }
+}
+
+async function loadApiLogs() {
+    try {
+        const [logsResponse, statsResponse] = await Promise.all([
+            API.request('/api/security/api-logs?limit=50'),
+            API.request('/api/security/api-logs/stats')
+        ]);
+        
+        const logs = logsResponse.data || [];
+        const stats = statsResponse.data || {};
+        
+        // Actualizar estadísticas
+        if (stats.summary) {
+            document.getElementById('total-requests').textContent = stats.summary.totalRequests || 0;
+            document.getElementById('success-rate').textContent = stats.summary.successRate + '%' || '0%';
+            document.getElementById('cache-hit-rate').textContent = stats.summary.cacheHitRate + '%' || '0%';
+        }
+        
+        const container = document.getElementById('api-logs-container');
+        
+        if (logs.length === 0) {
+            container.innerHTML = '<p style="text-align: center; padding: 40px; color: var(--text-secondary);">No hay logs de API</p>';
+            return;
+        }
+        
+        container.innerHTML = `
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Usuario</th>
+                        <th>Endpoint</th>
+                        <th>Query</th>
+                        <th>IP</th>
+                        <th>Status</th>
+                        <th>Tiempo</th>
+                        <th>Caché</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${logs.map(log => `
+                        <tr>
+                            <td>${new Date(log.timestamp).toLocaleString()}</td>
+                            <td>${log.userId?.username || 'N/A'}</td>
+                            <td><code>${log.endpoint}</code></td>
+                            <td><small>${JSON.stringify(log.query || {})}</small></td>
+                            <td><code>${log.ip}</code></td>
+                            <td><span class="status-badge ${log.success ? 'active' : 'inactive'}">${log.responseStatus}</span></td>
+                            <td>${log.responseTime}ms</td>
+                            <td>${log.fromCache ? '✅' : '❌'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (error) {
+        console.error('Error cargando API logs:', error);
+        UI.toast('Error cargando logs de API', 'error');
+    }
+}
+
+// Filtro de audit logs
+document.getElementById('audit-action-filter')?.addEventListener('change', async (e) => {
+    const action = e.target.value;
+    const response = await API.request(`/api/security/audit-logs${action ? `?action=${action}` : ''}`);
+    const logs = response.data || [];
+    
+    // Re-renderizar con filtro aplicado
+    loadAuditLogs();
+});
+
+// Exportar audit logs
+document.getElementById('export-audit-btn')?.addEventListener('click', async () => {
+    try {
+        const response = await API.request('/api/security/audit-logs?limit=1000');
+        const logs = response.data || [];
+        
+        // Convertir a CSV
+        const csv = convertToCSV(logs);
+        
+        // Descargar
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `audit-logs-${new Date().toISOString()}.csv`;
+        a.click();
+        
+        UI.toast('Logs exportados exitosamente', 'success');
+    } catch (error) {
+        UI.toast('Error exportando logs', 'error');
+    }
+});
+
+function convertToCSV(data) {
+    if (data.length === 0) return '';
+    
+    const headers = Object.keys(data[0]);
+    const csvHeaders = headers.join(',');
+    
+    const csvRows = data.map(row => {
+        return headers.map(header => {
+            const value = row[header];
+            if (typeof value === 'object') return JSON.stringify(value);
+            return `"${value}"`;
+        }).join(',');
+    });
+    
+    return [csvHeaders, ...csvRows].join('\n');
+}
+
+// ===== BÚSQUEDA EN AYUDA =====
+
+document.getElementById('help-search-input')?.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const helpItems = document.querySelectorAll('.help-item');
+    
+    helpItems.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            item.style.display = 'block';
+            item.classList.add('animate-fade-in-up');
+        } else {
+            item.style.display = 'none';
+        }
+    });
+});
+
+// ===== ACTUALIZAR NAVEGACIÓN PARA NUEVAS SECCIONES =====
+
+// Modificar el event listener de navegación existente
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const section = item.dataset.section;
+        
+        // Detener contadores cuando se sale de la sección de keys
+        if (section !== 'keys') {
+            stopCountdownUpdates();
+        }
+        
+        UI.showSection(section);
+        
+        // Cargar datos según la sección
+        if (section === 'dashboard') loadDashboard();
+        else if (section === 'keys') loadKeys();
+        else if (section === 'users') loadUsers();
+        else if (section === 'notifications') loadNotifications();
+        else if (section === 'profile') loadProfile();
+        else if (section === 'requests') loadRequestsForm();
+        else if (section === 'pending-requests') loadPendingRequests();
+        else if (section === 'tickets') loadTickets();
+        else if (section === 'security') loadSecuritySection();
+        // 'help' no necesita cargar nada, es solo HTML estático
+    });
+});
+
+// ===== MENSAJE DE BIENVENIDA AL LOGIN =====
+
+// Modificar la función de login exitoso
+const originalLoginSuccess = async (response) => {
+    state.token = response.token;
+    state.user = response.user;
+    localStorage.setItem('token', response.token);
+    
+    UI.showScreen('dashboard-screen');
+    UI.updateUserDisplay();
+    updateRoleVisibility();
+    
+    // Mostrar mensaje de bienvenida personalizado
+    showWelcomeMessage();
+    
+    await loadDashboard();
+};
+
+function showWelcomeMessage() {
+    const role = state.user.role;
+    const username = state.user.username;
+    
+    let message = '';
+    let icon = '';
+    
+    if (role === 'admin') {
+        icon = '🛡️';
+        message = `¡Bienvenido ${username}! Como Administrador tienes acceso completo al sistema. Puedes gestionar usuarios, keys, seguridad y más.`;
+    } else if (role === 'vendedor') {
+        icon = '💼';
+        message = `¡Hola ${username}! Como Vendedor puedes crear hasta 5 clientes y gestionar sus keys. Revisa tus solicitudes pendientes.`;
+    } else {
+        icon = '👤';
+        message = `¡Bienvenido ${username}! Puedes crear keys para tus endpoints autorizados y solicitar nuevos accesos cuando lo necesites.`;
+    }
+    
+    // Mostrar toast de bienvenida
+    setTimeout(() => {
+        UI.toast(icon + ' ' + message, 'success', 5000);
+    }, 500);
+}
+
+// ===== ANIMACIONES AL CARGAR SECCIONES =====
+
+// Agregar animaciones a elementos cuando se cargan
+const originalShowSection = UI.showSection;
+UI.showSection = function(sectionName) {
+    originalShowSection.call(this, sectionName);
+    
+    // Agregar animaciones a elementos
+    setTimeout(() => {
+        const section = document.getElementById(`${sectionName}-section`);
+        if (section) {
+            const cards = section.querySelectorAll('.stats-card, .endpoint-card, .ticket-item');
+            cards.forEach((card, index) => {
+                card.classList.add('animate-fade-in-up');
+                card.style.animationDelay = `${index * 50}ms`;
+            });
+        }
+    }, 100);
+};
+
+console.log('🚀 Panel de Administración Cargado - Todas las funcionalidades activas');
+console.log('✅ Seguridad | ✅ Tickets | ✅ Modo Oscuro | ✅ Logs | ✅ Ayuda');
+
