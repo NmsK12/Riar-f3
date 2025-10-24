@@ -276,26 +276,36 @@ function getOnboardingSteps(role) {
 }
 
 // Iniciar tutorial automáticamente
-document.addEventListener('DOMContentLoaded', () => {
-    // Esperar a que el usuario haga login
-    const originalShowScreen = UI?.showScreen;
-    if (originalShowScreen && typeof originalShowScreen === 'function') {
-        UI.showScreen = function(screenId) {
-            originalShowScreen.call(this, screenId);
-            
-            // Si cambió a dashboard y no ha visto el tutorial
-            if (screenId === 'dashboard-screen') {
-                setTimeout(() => {
-                    if (window.state && window.state.user) {
-                        const steps = getOnboardingSteps(state.user.role);
-                        onboarding.init(steps);
-                        onboarding.start();
-                    }
-                }, 1000);
-            }
-        };
+function initOnboardingWhenReady() {
+    // Esperar a que UI esté disponible
+    if (typeof UI === 'undefined' || typeof UI.showScreen !== 'function') {
+        setTimeout(initOnboardingWhenReady, 100);
+        return;
     }
-});
+
+    const originalShowScreen = UI.showScreen;
+    UI.showScreen = function(screenId) {
+        originalShowScreen.call(this, screenId);
+        
+        // Si cambió a dashboard y no ha visto el tutorial
+        if (screenId === 'dashboard-screen') {
+            setTimeout(() => {
+                if (window.state && window.state.user) {
+                    const steps = getOnboardingSteps(state.user.role);
+                    onboarding.init(steps);
+                    onboarding.start();
+                }
+            }, 1000);
+        }
+    };
+}
+
+// Iniciar cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initOnboardingWhenReady);
+} else {
+    initOnboardingWhenReady();
+}
 
 // Función para reiniciar tutorial (útil para testing)
 window.restartOnboarding = function() {

@@ -11,6 +11,9 @@ require('dotenv').config();
 
 const app = express();
 
+// Trust proxy (necesario para Railway y otros servicios PaaS)
+app.set('trust proxy', true);
+
 // ===== SEGURIDAD MÁXIMA =====
 
 // 1. Helmet - Headers de seguridad

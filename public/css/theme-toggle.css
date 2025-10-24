@@ -92,6 +92,9 @@
   box-shadow: var(--shadow-md);
   cursor: pointer;
   transition: all var(--transition-speed) ease;
+  width: auto;
+  min-width: fit-content;
+  max-width: 150px;
 }
 
 .theme-toggle:hover {
