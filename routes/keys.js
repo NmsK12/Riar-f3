@@ -320,5 +320,32 @@ router.post('/validate', async (req, res) => {
   }
 });
 
+// DELETE /api/keys/all - Eliminar TODAS las keys (solo admin)
+router.delete('/all', async (req, res) => {
+  try {
+    // Solo admin puede eliminar todas las keys
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Solo administradores pueden eliminar todas las keys' 
+      });
+    }
+
+    const result = await ApiKey.deleteMany({});
+    
+    res.json({
+      success: true,
+      message: `✅ Se eliminaron ${result.deletedCount} keys exitosamente`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error eliminando todas las keys', 
+      error: error.message 
+    });
+  }
+});
+
 module.exports = router;
 

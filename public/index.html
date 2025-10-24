@@ -89,7 +89,20 @@
                     </button>
 
                     <div class="register-link">
-                        <a href="#" id="show-register">¿Eres cliente nuevo? Regístrate aquí</a>
+                        <p style="text-align: center; color: var(--text-secondary); margin-top: 20px;">
+                            ¿Quieres pertenecer al panel? Contacta a un administrador:
+                        </p>
+                        <div class="admin-contacts" style="margin: 15px 0; text-align: center;">
+                            <a href="https://t.me/zGatoO" target="_blank" class="admin-tag" style="text-decoration: none; display: inline-block; margin: 5px;">
+                                <i class="fab fa-telegram"></i> @zGatoO
+                            </a>
+                            <a href="https://t.me/choco_tete" target="_blank" class="admin-tag" style="text-decoration: none; display: inline-block; margin: 5px;">
+                                <i class="fab fa-telegram"></i> @choco_tete
+                            </a>
+                            <a href="https://t.me/WinniePoohOFC" target="_blank" class="admin-tag" style="text-decoration: none; display: inline-block; margin: 5px;">
+                                <i class="fab fa-telegram"></i> @WinniePoohOFC
+                            </a>
+                        </div>
                     </div>
                 </form>
 
@@ -126,73 +139,7 @@
         </div>
     </div>
 
-    <!-- Pantalla de Registro de Cliente -->
-    <div id="register-screen" class="screen">
-        <div class="login-container">
-            <div class="terminal-header">
-                <div class="terminal-buttons">
-                    <span class="btn-red"></span>
-                    <span class="btn-yellow"></span>
-                    <span class="btn-green"></span>
-                </div>
-                <div class="terminal-title">root@api-control:~/register$</div>
-            </div>
-            
-            <div class="login-content">
-                <h2><i class="fas fa-user-plus"></i> Registro de Cliente</h2>
-                
-                <div class="warning-box">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p><strong>¡ATENCIÓN!</strong> Si solicitas acceso pero no compras, serás <strong>bloqueado y reportado</strong>.</p>
-                </div>
-
-                <form id="register-form" class="login-form">
-                    <div class="form-group">
-                        <label for="reg-fullname">
-                            <i class="fas fa-id-card"></i> Nombre Completo
-                        </label>
-                        <input type="text" id="reg-fullname" name="fullName" placeholder="Tu nombre completo" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="reg-username">
-                            <i class="fas fa-user"></i> Usuario
-                        </label>
-                        <input type="text" id="reg-username" name="username" placeholder="Elige un usuario" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="reg-password">
-                            <i class="fas fa-lock"></i> Contraseña
-                        </label>
-                        <input type="password" id="reg-password" name="password" placeholder="Elige una contraseña segura" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="reg-telegram">
-                            <i class="fab fa-telegram"></i> Usuario de Telegram
-                        </label>
-                        <input type="text" id="reg-telegram" name="telegram" placeholder="@tuusuario" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="reg-phone">
-                            <i class="fas fa-phone"></i> Teléfono
-                        </label>
-                        <input type="tel" id="reg-phone" name="phone" placeholder="+51 999 999 999" required>
-                    </div>
-
-                    <button type="submit" class="btn-primary">
-                        <i class="fas fa-paper-plane"></i> Solicitar Acceso
-                    </button>
-
-                    <div class="register-link">
-                        <a href="#" id="back-to-login">Volver al login</a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    <!-- Registro eliminado - Los admins crean usuarios directamente -->
 
     <!-- Panel Principal -->
     <div id="dashboard-screen" class="screen">
@@ -315,9 +262,14 @@
             <section id="keys-section" class="content-section">
                 <div class="section-header">
                     <h1><i class="fas fa-key"></i> Gestión de API Keys</h1>
-                    <button class="btn-primary" id="create-key-btn">
-                        <i class="fas fa-plus"></i> Crear Nueva Key
-                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-primary" id="create-key-btn">
+                            <i class="fas fa-plus"></i> Crear Nueva Key
+                        </button>
+                        <button class="btn-danger admin-only" id="delete-all-keys-btn" style="display: none;">
+                            <i class="fas fa-trash-alt"></i> Eliminar Todas las Keys
+                        </button>
+                    </div>
                 </div>
 
                 <div class="keys-table-container">

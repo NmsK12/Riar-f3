@@ -56,11 +56,6 @@ const API = {
         body: JSON.stringify(data)
     }),
 
-    registerClient: (data) => API.request('/api/auth/register-client', {
-        method: 'POST',
-        body: JSON.stringify(data)
-    }),
-
     // Keys
     getKeys: () => API.request('/api/keys'),
     createKey: (data) => API.request('/api/keys', {
@@ -245,46 +240,9 @@ document.getElementById('verify-ip-btn')?.addEventListener('click', async () => 
     }
 });
 
-// ===== REGISTRO =====
-document.getElementById('show-register')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    UI.showScreen('register-screen');
-});
-
-document.getElementById('back-to-login')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    UI.showScreen('login-screen');
-});
-
-document.getElementById('register-form')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    // Confirmación
-    const confirmed = confirm('¿Estás seguro que quieres solicitar acceso ahora mismo?\n\nSi solicitas acceso pero no compras, serás BLOQUEADO y REPORTADO.');
-    if (!confirmed) return;
-
-    const formData = new FormData(e.target);
-    const data = {
-        username: formData.get('username'),
-        password: formData.get('password'),
-        telegram: formData.get('telegram'),
-        phone: formData.get('phone'),
-        fullName: formData.get('fullName')
-    };
-
-    try {
-        const response = await API.registerClient(data);
-        
-        if (response.success) {
-            const adminsList = response.admins.join(', ');
-            alert(`¡Solicitud enviada!\n\nTu código de registro es: ${response.code}\n\nContacta a un administrador:\n${adminsList}\n\nProporciona tu usuario de Telegram (${data.telegram}) para que te contacten con el método de pago.`);
-            UI.showScreen('login-screen');
-            UI.toast('Solicitud enviada. Espera la aprobación de un admin', 'success');
-        }
-    } catch (error) {
-        UI.toast(error.message, 'error');
-    }
-});
+// ===== REGISTRO ELIMINADO =====
+// Los admins crean usuarios directamente desde el panel
+// Los clientes contactan por Telegram: @zGatoO, @choco_tete, @WinniePoohOFC
 
 // ===== LOGOUT =====
 document.getElementById('logout-btn')?.addEventListener('click', () => {
@@ -488,6 +446,30 @@ function renderKeysTable() {
 // Botón crear key
 document.getElementById('create-key-btn')?.addEventListener('click', () => {
     UI.showModal('create-key-modal');
+});
+
+// Botón eliminar TODAS las keys (solo admin)
+document.getElementById('delete-all-keys-btn')?.addEventListener('click', async () => {
+    const confirmMsg = '⚠️ ¿ESTÁS SEGURO?\n\nEsto eliminará TODAS las API keys de la base de datos.\nEsta acción NO se puede deshacer.\n\nEscribe "ELIMINAR TODO" para confirmar:';
+    const userInput = prompt(confirmMsg);
+    
+    if (userInput !== 'ELIMINAR TODO') {
+        UI.toast('Operación cancelada', 'info');
+        return;
+    }
+    
+    try {
+        const response = await API.request('/api/keys/all', {
+            method: 'DELETE'
+        });
+        
+        if (response.success) {
+            UI.toast(`✅ ${response.deletedCount} keys eliminadas exitosamente`, 'success');
+            await loadKeys();
+        }
+    } catch (error) {
+        UI.toast(error.message, 'error');
+    }
 });
 
 // Copiar key
