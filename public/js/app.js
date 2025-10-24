@@ -304,6 +304,7 @@ async function loadDashboard() {
             { id: 'arg', icon: 'fa-sitemap', name: '/arg?dni=', desc: 'Árbol genealógico' },
             { id: 'risk', icon: 'fa-exclamation-triangle', name: '/risk?dni=', desc: 'Datos de riesgo' },
             { id: 'foto', icon: 'fa-camera', name: '/foto?dni=', desc: 'Fotografías' },
+            { id: 'foto2', icon: 'fa-image', name: '/foto2?dni=', desc: 'Fotografías' },
             { id: 'sunat', icon: 'fa-building', name: '/sunat?dni=', desc: 'Datos laborales' },
             { id: 'meta', icon: 'fa-database', name: '/meta?dni=', desc: 'Todos los datos' },
             { id: 'reniec', icon: 'fa-landmark', name: '/reniec?dni=', desc: 'Registro Nacional' },
@@ -1077,6 +1078,20 @@ function renderReadyUrls(keys) {
             `;
         }
         
+        if (endpoint === 'foto2' || endpoint === 'all') {
+            examples += `
+                <div class="url-example-item">
+                    <span class="url-label">📸 FOTO2:</span>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/foto2?dni=80660244&key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/foto2?dni=80660244&key=${key.key}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
         if (endpoint === 'sunat' || endpoint === 'all') {
             examples += `
                 <div class="url-example-item">
@@ -1599,6 +1614,14 @@ function showWelcomeModal(keyData) {
         examplesHTML += generateExample(
             '📷', 'FOTO',
             `${API_URL}/foto?dni=80660244&key=${key}`,
+            'Solo fotografía en base64'
+        );
+    }
+    
+    if (keyData.endpoint === 'foto2' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '📸', 'FOTO2',
+            `${API_URL}/foto2?dni=80660244&key=${key}`,
             'Solo fotografía en base64'
         );
     }
