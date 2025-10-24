@@ -1101,6 +1101,63 @@ function renderReadyUrls(keys) {
             `;
         }
         
+        // NUEVOS ENDPOINTS - APIs Externas
+        if (endpoint === 'reniec' || endpoint === 'all') {
+            examples += `
+                <div class="url-example-item">
+                    <span class="url-label">🏛️ RENIEC:</span>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/reniec?dni=44443333&key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/reniec?dni=44443333&key=${key.key}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (endpoint === 'sentinel' || endpoint === 'all') {
+            examples += `
+                <div class="url-example-item">
+                    <span class="url-label">🛡️ SENTINEL:</span>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/sentinel/44443333?key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/sentinel/44443333?key=${key.key}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (endpoint === 'denuncias-placa' || endpoint === 'all') {
+            examples += `
+                <div class="url-example-item">
+                    <span class="url-label">🚗 DENUNCIAS PLACA:</span>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/denuncias-placa/ABC123?key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/denuncias-placa/ABC123&key=${key.key}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (endpoint === 'denuncias-dni' || endpoint === 'all') {
+            examples += `
+                <div class="url-example-item">
+                    <span class="url-label">📄 DENUNCIAS DNI:</span>
+                    <div class="url-input-group">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/denuncias-dni/10000006?key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/denuncias-dni/10000006?key=${key.key}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
         return `
             <div class="url-ready-item">
                 <div class="url-header">
@@ -1555,6 +1612,39 @@ function showWelcomeModal(keyData) {
             '🔥', 'META (TODO)',
             `${API_URL}/meta?dni=80660244&key=${key}`,
             'Todos los datos disponibles'
+        );
+    }
+    
+    // NUEVOS ENDPOINTS - APIs Externas
+    if (keyData.endpoint === 'reniec' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '🏛️', 'RENIEC',
+            `${API_URL}/reniec?dni=44443333&key=${key}`,
+            'Registro Nacional (API externa)'
+        );
+    }
+    
+    if (keyData.endpoint === 'sentinel' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '🛡️', 'SENTINEL',
+            `${API_URL}/sentinel/44443333?key=${key}`,
+            'Sistema Sentinel por documento'
+        );
+    }
+    
+    if (keyData.endpoint === 'denuncias-placa' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '🚗', 'DENUNCIAS PLACA',
+            `${API_URL}/denuncias-placa/ABC123?key=${key}`,
+            'Denuncias por placa vehicular'
+        );
+    }
+    
+    if (keyData.endpoint === 'denuncias-dni' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '📄', 'DENUNCIAS DNI',
+            `${API_URL}/denuncias-dni/10000006?key=${key}`,
+            'Denuncias por DNI/documento'
         );
     }
     

@@ -662,16 +662,25 @@
                     <label for="key-endpoint">Endpoint</label>
                     <select id="key-endpoint" name="endpoint" required>
                         <option value="">Seleccionar endpoint...</option>
-                        <option value="dni">📋 DNI - Consulta de personas</option>
-                        <option value="telp">📱 TELP - Teléfonos</option>
-                        <option value="nom">👤 NOM - Búsqueda por nombres</option>
-                        <option value="arg">🌳 ARG - Árbol genealógico</option>
-                        <option value="corr">📧 CORR - Correos electrónicos</option>
-                        <option value="risk">⚠️ RISK - Datos de riesgo</option>
-                        <option value="foto">📷 FOTO - Fotografías</option>
-                        <option value="sunat">🏢 SUNAT - Datos laborales</option>
-                        <option value="meta">🔍 META - Todos los datos</option>
-                        <option value="all" class="admin-only">🔓 ALL - Acceso total</option>
+                        <optgroup label="🔵 Endpoints Principales">
+                            <option value="dni">📋 DNI - Consulta de personas</option>
+                            <option value="telp">📱 TELP - Teléfonos</option>
+                            <option value="nom">👤 NOM - Búsqueda por nombres</option>
+                            <option value="arg">🌳 ARG - Árbol genealógico</option>
+                            <option value="risk">⚠️ RISK - Datos de riesgo</option>
+                            <option value="foto">📷 FOTO - Fotografías</option>
+                            <option value="sunat">🏢 SUNAT - Datos laborales</option>
+                            <option value="meta">🔍 META - Todos los datos</option>
+                        </optgroup>
+                        <optgroup label="🟢 APIs Externas">
+                            <option value="reniec">🏛️ RENIEC - Registro Nacional</option>
+                            <option value="sentinel">🛡️ SENTINEL - Sistema Sentinel</option>
+                            <option value="denuncias-placa">🚗 DENUNCIAS PLACA - Vehicular</option>
+                            <option value="denuncias-dni">📄 DENUNCIAS DNI - Por documento</option>
+                        </optgroup>
+                        <optgroup label="⚡ Acceso Total">
+                            <option value="all" class="admin-only">🔓 ALL - Todos los endpoints</option>
+                        </optgroup>
                     </select>
                 </div>
 
