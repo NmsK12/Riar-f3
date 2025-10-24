@@ -1130,13 +1130,13 @@ function renderReadyUrls(keys) {
             `;
         }
         
-        if (endpoint === 'denuncias-placa' || endpoint === 'all') {
+        if (endpoint === 'denplaca' || endpoint === 'all') {
             examples += `
                 <div class="url-example-item">
-                    <span class="url-label">🚗 DENUNCIAS PLACA:</span>
+                    <span class="url-label">🚗 DENPLACA:</span>
                     <div class="url-input-group">
-                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/denuncias-placa/ABC123?key=${key.key}" onclick="this.select()">
-                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/denuncias-placa/ABC123&key=${key.key}')">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/denplaca/ABC123?key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/denplaca/ABC123?key=${key.key}')">
                             <i class="fas fa-copy"></i> Copiar
                         </button>
                     </div>
@@ -1144,13 +1144,13 @@ function renderReadyUrls(keys) {
             `;
         }
         
-        if (endpoint === 'denuncias-dni' || endpoint === 'all') {
+        if (endpoint === 'den' || endpoint === 'all') {
             examples += `
                 <div class="url-example-item">
-                    <span class="url-label">📄 DENUNCIAS DNI:</span>
+                    <span class="url-label">📄 DEN:</span>
                     <div class="url-input-group">
-                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/denuncias-dni/10000006?key=${key.key}" onclick="this.select()">
-                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/denuncias-dni/10000006?key=${key.key}')">
+                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/den/10000006?key=${key.key}" onclick="this.select()">
+                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/den/10000006?key=${key.key}')">
                             <i class="fas fa-copy"></i> Copiar
                         </button>
                     </div>
@@ -1632,18 +1632,18 @@ function showWelcomeModal(keyData) {
         );
     }
     
-    if (keyData.endpoint === 'denuncias-placa' || keyData.endpoint === 'all') {
+    if (keyData.endpoint === 'denplaca' || keyData.endpoint === 'all') {
         examplesHTML += generateExample(
-            '🚗', 'DENUNCIAS PLACA',
-            `${API_URL}/denuncias-placa/ABC123?key=${key}`,
+            '🚗', 'DENPLACA',
+            `${API_URL}/denplaca/ABC123?key=${key}`,
             'Denuncias por placa vehicular'
         );
     }
     
-    if (keyData.endpoint === 'denuncias-dni' || keyData.endpoint === 'all') {
+    if (keyData.endpoint === 'den' || keyData.endpoint === 'all') {
         examplesHTML += generateExample(
-            '📄', 'DENUNCIAS DNI',
-            `${API_URL}/denuncias-dni/10000006?key=${key}`,
+            '📄', 'DEN',
+            `${API_URL}/den/10000006?key=${key}`,
             'Denuncias por DNI/documento'
         );
     }
