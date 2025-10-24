@@ -334,7 +334,6 @@ async function loadDashboard() {
             { id: 'telp', icon: 'fa-phone', name: 'TELP', desc: 'Teléfonos' },
             { id: 'nom', icon: 'fa-user', name: 'NOM', desc: 'Búsqueda por nombres' },
             { id: 'arg', icon: 'fa-sitemap', name: 'ARG', desc: 'Árbol genealógico' },
-            { id: 'corr', icon: 'fa-envelope', name: 'CORR', desc: 'Correos electrónicos' },
             { id: 'risk', icon: 'fa-exclamation-triangle', name: 'RISK', desc: 'Datos de riesgo' },
             { id: 'foto', icon: 'fa-camera', name: 'FOTO', desc: 'Fotografías' },
             { id: 'sunat', icon: 'fa-building', name: 'SUNAT', desc: 'Datos laborales' },
@@ -508,7 +507,7 @@ function renderUsersTable() {
 document.getElementById('create-user-btn')?.addEventListener('click', () => {
     // Llenar checkboxes de endpoints
     const checkboxesContainer = document.getElementById('endpoints-checkboxes');
-    const endpoints = ['dni', 'telp', 'nom', 'arg', 'corr', 'risk', 'foto', 'sunat', 'meta'];
+    const endpoints = ['dni', 'telp', 'nom', 'arg', 'risk', 'foto', 'sunat', 'meta'];
     
     checkboxesContainer.innerHTML = endpoints.map(ep => `
         <label>
@@ -983,20 +982,6 @@ function renderReadyUrls(keys) {
             `;
         }
         
-        if (endpoint === 'corr' || endpoint === 'all') {
-            examples += `
-                <div class="url-example-item">
-                    <span class="url-label">📧 CORR:</span>
-                    <div class="url-input-group">
-                        <input type="text" class="url-input" readonly value="${API_BASE_URL}/corr?dni=80660244&key=${key.key}" onclick="this.select()">
-                        <button class="btn-copy-url" onclick="copyUrl(this, '${API_BASE_URL}/corr?dni=80660244&key=${key.key}')">
-                            <i class="fas fa-copy"></i> Copiar
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-        
         if (endpoint === 'risk' || endpoint === 'all') {
             examples += `
                 <div class="url-example-item">
@@ -1173,7 +1158,6 @@ async function loadRequestsForm() {
         { id: 'telp', name: 'TELP', desc: 'Teléfonos' },
         { id: 'nom', name: 'NOM', desc: 'Búsqueda por nombres' },
         { id: 'arg', name: 'ARG', desc: 'Árbol genealógico' },
-        { id: 'corr', name: 'CORR', desc: 'Correos electrónicos' },
         { id: 'risk', name: 'RISK', desc: 'Datos de riesgo' },
         { id: 'foto', name: 'FOTO', desc: 'Fotografías' },
         { id: 'sunat', name: 'SUNAT', desc: 'Datos laborales' },
@@ -1263,7 +1247,7 @@ document.getElementById('request-keys-form')?.addEventListener('submit', async (
     const endpoints = [];
     
     // Recoger todos los endpoints seleccionados
-    ['dni', 'telp', 'nom', 'arg', 'corr', 'risk', 'foto', 'sunat', 'meta'].forEach(ep => {
+    ['dni', 'telp', 'nom', 'arg', 'risk', 'foto', 'sunat', 'meta'].forEach(ep => {
         const checkbox = document.querySelector(`input[name="endpoint-${ep}"]`);
         if (checkbox && checkbox.checked) {
             const duration = formData.get(`duration-${ep}`);
@@ -1464,14 +1448,6 @@ function showWelcomeModal(keyData) {
             '🌳', 'ÁRBOL GENEALÓGICO',
             `${API_URL}/arg?dni=80660244&key=${key}`,
             'Familiares directos'
-        );
-    }
-    
-    if (keyData.endpoint === 'corr' || keyData.endpoint === 'all') {
-        examplesHTML += generateExample(
-            '📧', 'CORREOS',
-            `${API_URL}/corr?dni=80660244&key=${key}`,
-            'Emails asociados al DNI'
         );
     }
     
