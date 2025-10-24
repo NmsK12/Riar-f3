@@ -67,7 +67,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Endpoint, cantidad y unidad de tiempo son requeridos' });
     }
 
-    const validEndpoints = ['dni', 'telp', 'nom', 'arg', 'corr', 'risk', 'foto', 'sunat', 'meta', 'all'];
+    const validEndpoints = ['dni', 'telp', 'nom', 'arg', 'risk', 'foto', 'sunat', 'meta', 'reniec', 'sentinel', 'denplaca', 'den', 'all'];
     if (!validEndpoints.includes(endpoint)) {
       return res.status(400).json({ success: false, message: 'Endpoint inválido' });
     }
