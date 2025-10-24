@@ -55,7 +55,16 @@ const createUserRateLimit = (options = {}) => {
             reason: 'rate_limit_exceeded',
             description: `Excedió el límite de ${maxRequests} peticiones en ${windowMs/1000/60} minutos`,
             attemptCount: record.abuseCount,
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 horas
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
+            attemptContext: {
+              path: req.path,
+              method: req.method,
+              requestCount: record.requests.length,
+              timestamp: new Date()
+            },
+            userAgent: req.headers['user-agent'],
+            endpoint: req.path,
+            method: req.method
           });
 
           // Log de auditoría
@@ -181,7 +190,17 @@ const detectSuspiciousPatterns = async (req, res, next) => {
           reason: 'suspicious_pattern',
           description: `Patrón sospechoso detectado: ${matchedPattern}`,
           attemptCount: 1,
-          active: false // Solo advertencia por ahora
+          active: false, // Solo advertencia por ahora
+          attemptContext: {
+            path: req.path,
+            method: req.method,
+            pattern: matchedPattern,
+            body: req.body ? JSON.stringify(req.body).substring(0, 200) : null,
+            timestamp: new Date()
+          },
+          userAgent: req.headers['user-agent'],
+          endpoint: req.path,
+          method: req.method
         });
       }
     }

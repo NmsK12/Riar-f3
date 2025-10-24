@@ -37,6 +37,20 @@ const blacklistSchema = new mongoose.Schema({
   active: {
     type: Boolean,
     default: true
+  },
+  // Nuevo: contexto de lo que intentó hacer
+  attemptContext: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  },
+  userAgent: {
+    type: String
+  },
+  endpoint: {
+    type: String
+  },
+  method: {
+    type: String
   }
 }, {
   timestamps: true

@@ -99,7 +99,10 @@ const API = {
     updateProfile: (data) => API.request('/api/profile', {
         method: 'PUT',
         body: JSON.stringify(data)
-    })
+    }),
+    
+    // Security
+    getCriticalAlerts: () => API.request('/api/security/critical-alerts')
 };
 
 // ===== UI UTILITIES =====
@@ -131,7 +134,7 @@ const UI = {
         document.getElementById(modalId).classList.remove('active');
     },
 
-    toast(message, type = 'info') {
+    toast(message, type = 'info', duration = 5000) {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
@@ -152,7 +155,7 @@ const UI = {
 
         setTimeout(() => {
             toast.remove();
-        }, 5000);
+        }, duration);
     },
 
     updateUserDisplay() {
@@ -374,6 +377,10 @@ async function loadDashboard() {
         // Cargar notificaciones si es admin
         if (state.user.role === 'admin') {
             loadNotifications();
+            // Cargar alertas críticas
+            loadCriticalAlerts();
+            // Actualizar alertas cada 30 segundos
+            setInterval(loadCriticalAlerts, 30000);
         }
 
         // Cargar keys
@@ -381,6 +388,45 @@ async function loadDashboard() {
 
     } catch (error) {
         console.error('Error cargando dashboard:', error);
+    }
+}
+
+// ===== ALERTAS CRÍTICAS =====
+async function loadCriticalAlerts() {
+    if (state.user.role !== 'admin') return;
+    
+    try {
+        const response = await API.getCriticalAlerts();
+        const { criticalLogs, recentBlocks, summary } = response.data;
+        
+        // Mostrar alertas críticas como toasts si hay nuevas
+        if (criticalLogs.length > 0) {
+            criticalLogs.forEach(log => {
+                if (log.severity === 'critical' && !log.notified) {
+                    const icon = log.action === 'suspicious_activity_detected' ? '⚠️' : '🚨';
+                    UI.toast(`${icon} ${log.action}: ${log.details.description || log.ip}`, 'error', 7000);
+                }
+            });
+        }
+        
+        if (recentBlocks.length > 0) {
+            recentBlocks.forEach(block => {
+                if (!block.notified && block.active) {
+                    UI.toast(`🚫 IP Bloqueada: ${block.ip} (${block.reason})`, 'warning', 7000);
+                }
+            });
+        }
+        
+        // Actualizar badge de alertas si existe
+        const alertBadge = document.getElementById('critical-alerts-count');
+        if (alertBadge) {
+            const totalAlerts = summary.criticalCount + summary.blockedIPsCount;
+            alertBadge.textContent = totalAlerts;
+            alertBadge.style.display = totalAlerts > 0 ? 'inline-block' : 'none';
+        }
+        
+    } catch (error) {
+        console.error('Error cargando alertas críticas:', error);
     }
 }
 
@@ -1078,7 +1124,7 @@ window.copyUrl = (button, url) => {
 // Abrir modal de renovar
 window.openRenewModal = (keyId) => {
     document.getElementById('renew-key-id').value = keyId;
-    UI.openModal('renew-key-modal');
+    UI.showModal('renew-key-modal');
 };
 
 // Manejar formulario de renovar
@@ -1103,7 +1149,7 @@ document.getElementById('renew-key-form')?.addEventListener('submit', async (e) 
         
         if (response.success) {
             UI.toast(`Key renovada por ${durationAmount} ${durationUnit}`, 'success');
-            UI.closeModal('renew-key-modal');
+            UI.hideModal('renew-key-modal');
             e.target.reset();
             await loadKeys();
         }
@@ -1843,26 +1889,42 @@ async function loadBlacklist() {
                         <th>IP</th>
                         <th>Razón</th>
                         <th>Intentos</th>
+                        <th>Contexto</th>
                         <th>Bloqueado</th>
                         <th>Expira</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${blacklist.map(item => `
+                    ${blacklist.map(item => {
+                        const context = item.attemptContext || {};
+                        const contextHtml = context.path ? `
+                            <div style="font-size: 11px;">
+                                <strong>Endpoint:</strong> ${context.method || 'N/A'} ${context.path || item.endpoint || 'N/A'}<br>
+                                ${context.pattern ? `<strong>Patrón:</strong> ${context.pattern}<br>` : ''}
+                                ${context.requestCount ? `<strong>Peticiones:</strong> ${context.requestCount}<br>` : ''}
+                                ${item.userAgent ? `<strong>User-Agent:</strong> ${item.userAgent.substring(0, 40)}...` : ''}
+                            </div>
+                        ` : '<span style="color: var(--text-secondary);">Sin contexto</span>';
+                        
+                        return `
                         <tr>
                             <td><code>${item.ip}</code></td>
-                            <td><span class="badge badge-${item.reason === 'manual' ? 'warning' : 'danger'}">${item.reason}</span></td>
-                            <td>${item.attemptCount}</td>
+                            <td><span class="badge badge-${item.reason === 'manual' ? 'warning' : 'danger'}">${item.reason}</span><br>
+                                <small style="color: var(--text-secondary);">${item.description || ''}</small>
+                            </td>
+                            <td><span class="badge badge-danger">${item.attemptCount}</span></td>
+                            <td>${contextHtml}</td>
                             <td>${new Date(item.blockedAt).toLocaleString()}</td>
-                            <td>${item.expiresAt ? new Date(item.expiresAt).toLocaleString() : 'Permanente'}</td>
+                            <td>${item.expiresAt ? new Date(item.expiresAt).toLocaleString() : '<strong>Permanente</strong>'}</td>
                             <td>
                                 <button class="btn-secondary btn-sm" onclick="unblockIp('${item._id}')">
                                     <i class="fas fa-unlock"></i> Desbloquear
                                 </button>
                             </td>
                         </tr>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </tbody>
             </table>
         `;
@@ -2066,15 +2128,20 @@ document.getElementById('export-audit-btn')?.addEventListener('click', async () 
 function convertToCSV(data) {
     if (data.length === 0) return '';
     
-    const headers = Object.keys(data[0]);
+    // Definir headers específicos para logs
+    const headers = ['Fecha', 'Usuario', 'Acción', 'IP', 'Estado', 'Severidad', 'Detalles'];
     const csvHeaders = headers.join(',');
     
     const csvRows = data.map(row => {
-        return headers.map(header => {
-            const value = row[header];
-            if (typeof value === 'object') return JSON.stringify(value);
-            return `"${value}"`;
-        }).join(',');
+        const fecha = new Date(row.createdAt).toLocaleString();
+        const usuario = row.username || 'N/A';
+        const accion = row.action || 'N/A';
+        const ip = row.ip || 'N/A';
+        const estado = row.status || 'N/A';
+        const severidad = row.severity || 'N/A';
+        const detalles = row.details ? JSON.stringify(row.details).replace(/"/g, '""') : 'N/A';
+        
+        return `"${fecha}","${usuario}","${accion}","${ip}","${estado}","${severidad}","${detalles}"`;
     });
     
     return [csvHeaders, ...csvRows].join('\n');

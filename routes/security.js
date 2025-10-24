@@ -6,6 +6,56 @@ const ApiLog = require('../models/ApiLog');
 const { authorize } = require('../middleware/auth');
 const { logAction } = require('../middleware/auditLogger');
 
+// ===== ALERTAS CRÍTICAS =====
+
+// Obtener alertas críticas (errores 500, IPs bloqueadas, ataques)
+router.get('/critical-alerts', authorize(['admin']), async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+    
+    // Buscar logs críticos de las últimas 24 horas
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const criticalLogs = await AuditLog.find({
+      createdAt: { $gte: yesterday },
+      $or: [
+        { severity: 'critical' },
+        { severity: 'high' },
+        { action: 'suspicious_activity_detected' }
+      ]
+    })
+    .sort({ createdAt: -1 })
+    .limit(parseInt(limit));
+    
+    // Buscar IPs bloqueadas recientes
+    const recentBlocks = await Blacklist.find({
+      blockedAt: { $gte: yesterday },
+      active: true
+    })
+    .sort({ blockedAt: -1 })
+    .limit(5);
+    
+    res.json({
+      success: true,
+      data: {
+        criticalLogs,
+        recentBlocks,
+        summary: {
+          criticalCount: criticalLogs.length,
+          blockedIPsCount: recentBlocks.length
+        }
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error obteniendo alertas críticas',
+      error: error.message
+    });
+  }
+});
+
 // ===== BLACKLIST =====
 
 // Obtener IPs bloqueadas
