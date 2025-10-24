@@ -77,7 +77,7 @@ const ticketSchema = new mongoose.Schema({
 // Índices
 ticketSchema.index({ user: 1, status: 1, createdAt: -1 });
 ticketSchema.index({ status: 1, priority: 1, createdAt: -1 });
-ticketSchema.index({ ticketNumber: 1 });
+// ticketNumber ya tiene índice único automático, no duplicar
 
 // Pre-save para generar número de ticket
 ticketSchema.pre('save', async function(next) {

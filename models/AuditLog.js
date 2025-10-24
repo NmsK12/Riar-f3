@@ -68,7 +68,7 @@ const auditLogSchema = new mongoose.Schema({
 auditLogSchema.index({ user: 1, createdAt: -1 });
 auditLogSchema.index({ action: 1, createdAt: -1 });
 auditLogSchema.index({ ip: 1, createdAt: -1 });
-auditLogSchema.index({ createdAt: -1 });
+// createdAt ya está en índices compuestos arriba
 
 // TTL: Mantener logs por 90 días
 auditLogSchema.index({ createdAt: 1 }, { expireAfterSeconds: 7776000 }); // 90 días

@@ -32,8 +32,8 @@ const apiKeySchema = new mongoose.Schema({
   },
   expiresAt: {
     type: Date,
-    required: true,
-    index: true
+    required: true
+    // Índice TTL definido abajo, no duplicar aquí
   },
   active: {
     type: Boolean,

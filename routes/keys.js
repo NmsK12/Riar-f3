@@ -181,6 +181,34 @@ router.post('/', async (req, res) => {
   }
 });
 
+// DELETE /api/keys/all - Eliminar TODAS las keys (solo admin)
+// IMPORTANTE: Este endpoint debe estar ANTES de /:id para evitar que "all" se interprete como un ID
+router.delete('/all', async (req, res) => {
+  try {
+    // Solo admin puede eliminar todas las keys
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Solo administradores pueden eliminar todas las keys' 
+      });
+    }
+
+    const result = await ApiKey.deleteMany({});
+    
+    res.json({
+      success: true,
+      message: `✅ Se eliminaron ${result.deletedCount} keys exitosamente`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error eliminando todas las keys', 
+      error: error.message 
+    });
+  }
+});
+
 // DELETE /api/keys/:id - Eliminar key
 router.delete('/:id', async (req, res) => {
   try {
@@ -317,33 +345,6 @@ router.post('/validate', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error validando key', error: error.message, valid: false });
-  }
-});
-
-// DELETE /api/keys/all - Eliminar TODAS las keys (solo admin)
-router.delete('/all', async (req, res) => {
-  try {
-    // Solo admin puede eliminar todas las keys
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Solo administradores pueden eliminar todas las keys' 
-      });
-    }
-
-    const result = await ApiKey.deleteMany({});
-    
-    res.json({
-      success: true,
-      message: `✅ Se eliminaron ${result.deletedCount} keys exitosamente`,
-      deletedCount: result.deletedCount
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error eliminando todas las keys', 
-      error: error.message 
-    });
   }
 });
 

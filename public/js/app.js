@@ -351,7 +351,8 @@ async function loadDashboard() {
 
 // ===== ALERTAS CRÍTICAS =====
 async function loadCriticalAlerts() {
-    if (state.user.role !== 'admin') return;
+    // Verificar que el usuario esté autenticado y sea admin
+    if (!state.user || state.user.role !== 'admin') return;
     
     try {
         const response = await API.getCriticalAlerts();
