@@ -77,8 +77,22 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Unidad de tiempo inválida' });
     }
 
-    if (durationAmount <= 0 || durationAmount > 1000) {
-      return res.status(400).json({ success: false, message: 'Cantidad debe estar entre 1 y 1000' });
+    if (durationAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Cantidad debe ser mayor a 0' });
+    }
+
+    // Validar duración máxima: 12 meses (1 año)
+    const maxDurations = {
+      'horas': 8760, // 365 días * 24 horas
+      'dias': 365,   // 1 año
+      'meses': 12    // 1 año
+    };
+
+    if (durationAmount > maxDurations[durationUnit]) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `⚠️ La duración máxima permitida es de 12 meses (1 año). Intentaste crear ${durationAmount} ${durationUnit}. Máximo: ${maxDurations[durationUnit]} ${durationUnit}.` 
+      });
     }
 
     // Verificar endpoint 'all'

@@ -11,8 +11,9 @@ require('dotenv').config();
 
 const app = express();
 
-// Trust proxy (necesario para Railway y otros servicios PaaS)
-app.set('trust proxy', true);
+// Trust proxy configurado para Railway (1 = confiar en el primer proxy)
+// Esto es más seguro que 'true' ya que solo confía en el primer hop
+app.set('trust proxy', 1);
 
 // ===== SEGURIDAD MÁXIMA =====
 

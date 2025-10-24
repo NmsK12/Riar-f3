@@ -1193,6 +1193,18 @@ document.getElementById('create-key-form')?.addEventListener('submit', async (e)
         return;
     }
     
+    // Validar duración máxima (12 meses / 1 año)
+    const maxDurations = {
+        'horas': 8760,
+        'dias': 365,
+        'meses': 12
+    };
+    
+    if (durationAmount > maxDurations[durationUnit]) {
+        UI.toast(`⚠️ Duración máxima: ${maxDurations[durationUnit]} ${durationUnit} (1 año)`, 'error');
+        return;
+    }
+    
     try {
         const response = await API.request('/api/keys', {
             method: 'POST',
