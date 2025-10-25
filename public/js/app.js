@@ -1635,6 +1635,14 @@ function showWelcomeModal(keyData) {
         );
     }
     
+    if (keyData.endpoint === 'salud' || keyData.endpoint === 'all') {
+        examplesHTML += generateExample(
+            '🏥', 'SALUD',
+            `${API_URL}/salud/44443333?key=${key}`,
+            'Seguros de salud (SUSalud)'
+        );
+    }
+    
     if (keyData.endpoint === 'meta' || keyData.endpoint === 'all') {
         examplesHTML += generateExample(
             '🔥', 'META (TODO)',
