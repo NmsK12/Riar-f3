@@ -1312,6 +1312,7 @@ async function loadRequestsForm() {
         { id: 'risk', name: 'RISK', desc: 'Datos de riesgo' },
         { id: 'foto', name: 'FOTO', desc: 'Fotografías' },
         { id: 'sunat', name: 'SUNAT', desc: 'Datos laborales' },
+        { id: 'salud', name: 'SALUD', desc: 'Seguros de salud (SUSalud)' },
         { id: 'meta', name: 'META', desc: 'Todos los datos' }
     ];
 

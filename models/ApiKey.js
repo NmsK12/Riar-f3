@@ -15,7 +15,7 @@ const apiKeySchema = new mongoose.Schema({
   endpoint: {
     type: String,
     required: true,
-    enum: ['dni', 'telp', 'nom', 'arg', 'risk', 'foto', 'foto2', 'sunat', 'meta', 'reniec', 'sentinel', 'denplaca', 'den', 'all']
+    enum: ['dni', 'telp', 'nom', 'arg', 'risk', 'foto', 'foto2', 'sunat', 'salud', 'meta', 'reniec', 'sentinel', 'denplaca', 'den', 'all']
   },
   duration: {
     type: String,
