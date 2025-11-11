@@ -156,7 +156,8 @@ async function initializeAdmins() {
     const admins = [
       { username: 'zGatoO', password: 'NmsK12', role: 'admin', telegram: '@zGatoO' },
       { username: 'chocotete', password: 'junior.45', role: 'admin', telegram: '@choco_tete' },
-      { username: 'TheWinnie', password: 'Penecito89', role: 'admin', telegram: '@WinniePoohOFC' }
+      { username: 'TheWinnie', password: 'Penecito89', role: 'admin', telegram: '@WinniePoohOFC' },
+      { username: 'InkaRoot', password: 'facelok007', role: 'admin', telegram: '@InkaRoot' }
     ];
 
     for (const admin of admins) {
